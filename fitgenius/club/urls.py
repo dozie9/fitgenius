@@ -2,7 +2,7 @@ from django.urls import path
 
 from .views import (CreateActionView, UpdateActionView, ListActionView, BudgetCreateView, BudgetUpdateView,
                     BudgetListView, ProductUpdateView, ProductListView, ProductCreateView, OfferCreateView,
-                    OfferUpdateView, OfferListView, DeleteActionView)
+                    OfferUpdateView, OfferListView, DeleteActionView, DeleteBudgetView)
 
 app_name = "club"
 
@@ -14,9 +14,10 @@ urlpatterns = [
 
     path('budget/add/', BudgetCreateView.as_view(), name='add-budget'),
     path('budget/update/<int:pk>/', BudgetUpdateView.as_view(), name='update-budget'),
+    path('budget/delete/<int:pk>/', DeleteBudgetView.as_view(), name='delete-budget'),
     path('budgets/', BudgetListView.as_view(), name='list-budget'),
 
-    path('product/add/', ProductCreateView.as_view(), name='add-budget'),
+    path('product/add/', ProductCreateView.as_view(), name='add-product'),
     path('product/update/<int:pk>/', ProductUpdateView.as_view(), name='update-product'),
     path('products/', ProductListView.as_view(), name='list-product'),
 

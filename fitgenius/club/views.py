@@ -59,8 +59,8 @@ class ListActionView(LoginRequiredMixin, BaseCreateView, ListView):
 class BudgetCreateView(LoginRequiredMixin, CreateView):
     model = Budget
     template_name = 'club/budget-form.html'
-    fields = ['agent', 'amount', 'month']
-    success_url = '/'
+    fields = ['agent', 'amount', 'month', 'working_days']
+    success_url = reverse_lazy('club:list-budget')
 
     # def form_valid(self, form, *args, **kwargs):
     #
@@ -68,16 +68,28 @@ class BudgetCreateView(LoginRequiredMixin, CreateView):
     #     return super().form_valid(form, *args, **kwargs)
 
 
-class BudgetUpdateView(LoginRequiredMixin, UpdateView):
+class BudgetUpdateView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
     model = Budget
     template_name = 'club/budget-form.html'
-    fields = ['agent', 'amount', 'month']
-    success_url = '/'
+    fields = ['agent', 'amount', 'month', 'working_days']
+    success_url = reverse_lazy('club:list-budget')
 
 
-class BudgetListView(LoginRequiredMixin, ListView):
+class BudgetListView(LoginRequiredMixin, BaseCreateView, ListView):
     model = Budget
     template_name = 'club/budget-list.html'
+    fields = ['agent', 'amount', 'month', 'working_days']
+    success_url = reverse_lazy('club:list-budget')
+
+    def form_valid(self, form, *args, **kwargs):
+        # form = super(CreateActionView, self).form_valid(*args, **kwargs)
+        form.instance.club = self.request.user.club
+        return super().form_valid(form, *args, **kwargs)
+
+class DeleteBudgetView(LoginRequiredMixin, DeleteView):
+    model = Budget
+    success_message = 'Successfully deleted'
+    success_url = reverse_lazy('club:list-budget')
 
 
 class ProductCreateView(LoginRequiredMixin, CreateView):

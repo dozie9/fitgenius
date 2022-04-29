@@ -22,6 +22,9 @@ class Product(models.Model):
     value = models.DecimalField(max_digits=18, decimal_places=2)
     club = models.ForeignKey(Club, on_delete=models.SET_NULL, null=True)
 
+    def __str__(self):
+        return f'{self.title} | {self.value}'
+
 
 class Budget(models.Model):
     club = models.ForeignKey(Club, on_delete=models.CASCADE)
@@ -40,10 +43,15 @@ class Budget(models.Model):
 class OfferedItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
-    number_of_months = models.PositiveIntegerField()
+    number_of_months = models.PositiveIntegerField(null=True, blank=True)
 
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        if self.number_of_months is not None:
+            return f'{self.product} | {self.quantity} | {self.number_of_months} months'
+        return f'{self.product} | {self.quantity}'
 
 
 class Offer(models.Model):
