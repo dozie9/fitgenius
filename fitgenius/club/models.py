@@ -42,6 +42,7 @@ class Budget(models.Model):
 
 class OfferedItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    offer = models.ForeignKey('Offer', on_delete=models.CASCADE, null=True)
     quantity = models.PositiveIntegerField()
     number_of_months = models.PositiveIntegerField(null=True, blank=True)
 
@@ -89,7 +90,7 @@ class Offer(models.Model):
     )
 
     client_type = models.CharField(max_length=255, choices=CLIENT_TYPES)
-    offered_items = models.ManyToManyField(OfferedItem, related_name='offfers')
+    # offered_items = models.ManyToManyField(OfferedItem, related_name='offfers')
     meeting_type = models.CharField(max_length=255, choices=MEETING_CHOICE)
     category = models.CharField(max_length=255, choices=CATEGORY_CHOICE)
     accepted = models.BooleanField()
@@ -99,6 +100,11 @@ class Offer(models.Model):
 
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        permissions = (
+            ('access_offer', 'Access offer'),
+        )
 
     def __str__(self):
         return f'#{self.id} {self.agent.username}'
@@ -164,6 +170,10 @@ class Action(models.Model):
 
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    permissions = (
+        ('access_action', 'Access action'),
+    )
 
     def __str__(self):
         return f'{self.date} {self.action}'

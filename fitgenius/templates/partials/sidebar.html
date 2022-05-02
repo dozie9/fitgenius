@@ -114,12 +114,20 @@
           </li>
 
           <li>
-            <a href="{% url 'club:list-offer' %}" class="waves-effect">
+            <a href="javascript: void(0);" class="has-arrow waves-effect">
               <i class="bx bx-bitcoin"></i>
               <span key="t-crypto">Offer</span>
             </a>
+            <ul class="sub-menu" aria-expanded="false">
+              {% for an_offer in ClubOffer.CLIENT_TYPES %}
+                  <li>
+                    <a href="{% url 'club:list-offer' %}?client_type={{ an_offer.0 }}" key="t-horizontal">{{ an_offer.1 }}</a>
+                  </li>
+              {% endfor %}
+            </ul>
 
           </li>
+
           {% comment %}
 
           <li>

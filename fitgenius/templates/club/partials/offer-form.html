@@ -1,0 +1,33 @@
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+<div class="modal-content">
+  <div class="modal-header">
+    <h5 class="modal-title" id="offerAddModal">Offer</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+  <div id="edit-offer-{{ object.id }}-body" class="modal-body">
+    <form id="edit-offer-form-{{ object.id }}" hx-post="{% url 'club:update-offer' object.id %}">
+
+      {% csrf_token %}
+      {{ form|crispy }}
+
+    </form>
+    <div class="d-flex justify-content-end mb-3 mt-2">
+      <button class="btn btn-outline-primary " hx-get="{% url 'club:create-offered_item-form' %}?of={{ object.id }}" hx-swap="beforeend" hx-target="#items-forms">Add product
+      </button>
+    </div>
+    {% for item in object.offereditem_set.all %}
+      <li class="d-none" hx-get="{% url 'club:offered_item-form' item.id %}" hx-trigger="load" hx-swap="beforeend" hx-target="#items-forms">x{{ item.quantity }} <b>{{ item.product.title }}</b> {{ item.number_of_months }} months</li>
+    {% endfor %}
+    <div id="items-forms"></div>
+
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary waves-effect" data-bs-dismiss="modal">Close</button>
+    <button form="edit-offer-form-{{ object.id }}" class="btn btn-primary waves-effect waves-light">
+      Save changes
+    </button>
+  </div>
+</div><!-- /.modal-content -->

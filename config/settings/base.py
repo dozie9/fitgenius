@@ -87,6 +87,7 @@ THIRD_PARTY_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    "guardian"
 ]
 
 LOCAL_APPS = [
@@ -108,6 +109,7 @@ MIGRATION_MODULES = {"sites": "fitgenius.contrib.sites.migrations"}
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
+    "guardian.backends.ObjectPermissionBackend"
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "users.User"
@@ -196,6 +198,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
                 "fitgenius.users.context_processors.allauth_settings",
+                "fitgenius.club.context_processors.club_context"
             ],
         },
     }
@@ -290,3 +293,5 @@ SOCIALACCOUNT_FORMS = {"signup": "fitgenius.users.forms.UserSocialSignupForm"}
 # Your stuff...
 # ------------------------------------------------------------------------------
 ACCOUNT_LOGOUT_ON_GET = True
+
+GUARDIAN_RAISE_403 = True

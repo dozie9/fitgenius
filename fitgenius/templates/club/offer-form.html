@@ -1,18 +1,40 @@
 {% extends 'partials/base.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
-{% block title %}Add Product{% endblock title %}
+{% block title %}Add Offer{% endblock title %}
 {% block contents %}
-    <div class="row">
-        <div class="col-xl-6">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title mb-4">Add Offer</h4>
+  <div class="row">
+    <div class="col-xl-6">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title mb-4">Add Offer</h4>
 
-                    <form method="post" action=".">
-                      {% csrf_token %}
-                      {{ form|crispy }}
-                      {% comment %}
+          <form method="post" action=".">
+            {% csrf_token %}
+            {{ form|crispy }}
+
+            <table id="id_orders_table" border="0" cellpadding="0" cellspacing="5">
+                <thead>
+                    <tr>
+                        <th scope="col">Product</th>
+                        <th scope="col">Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in offered_item_form.forms %}
+                    <tr id="{{ form.prefix }}-row">
+                        <td>
+                            {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
+                            {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                            {{ form.product }}
+                        </td>
+                        <td>{{ form.quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+          {{ offered_item_form.management_form }}
+            {% comment %}
                         <div class="mb-3">
                             <label for="formrow-firstname-input" class="form-label">First Name</label>
                             <input type="text" class="form-control" id="formrow-firstname-input"
@@ -76,13 +98,24 @@
                         <div>
                             <button type="submit" class="btn btn-primary w-md">Submit</button>
                         </div>{% endcomment %}
-                      <button>Submit</button>
-                    </form>
-                </div>
-                <!-- end card body -->
-            </div>
-            <!-- end card -->
+            <button>Submit</button>
+          </form>
         </div>
-        <!-- end col -->
+        <!-- end card body -->
+      </div>
+      <!-- end card -->
     </div>
+    <!-- end col -->
+  </div>
 {% endblock contents %}
+{% block extra_javascript %}
+  <script src="{% static 'js/jquery.formset.js' %}"></script>
+  <script>
+    $(function () {
+      $("#id_orders_table tbody tr").formset({
+        prefix: "{{ offered_item_form.prefix }}",
+      })
+
+    })
+  </script>
+{% endblock %}

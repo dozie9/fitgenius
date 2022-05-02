@@ -1,0 +1,10 @@
+{% load static %}
+{% load crispy_forms_tags %}
+
+<form id="edit-offer-form-{{ object.id }}" method="post" action="{% url 'club:update-offer' object.id %}">
+
+  {% csrf_token %}
+  {{ form|crispy }}
+
+  <button>Submit</button>
+</form>

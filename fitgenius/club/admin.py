@@ -23,9 +23,14 @@ class OfferedItemAdmin(admin.ModelAdmin):
     list_display = ['product', 'quantity', 'number_of_months']
 
 
+class OfferedItemInline(admin.TabularInline):
+    model = OfferedItem
+
+
 @admin.register(Offer)
 class OfferAdmin(admin.ModelAdmin):
     list_display = ['client_type', 'agent', 'date', 'meeting_type', 'category', 'accepted', 'referrals']
+    inlines = [OfferedItemInline]
 
 
 @admin.register(Action)

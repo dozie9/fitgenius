@@ -1,16 +1,23 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.forms.models import inlineformset_factory
+from django.http import HttpResponseRedirect
+from django.http.response import HttpResponse
 from django.shortcuts import render
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
+from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView, UpdateView, BaseCreateView, DeleteView
 from django.views.generic.list import ListView
 
-from .models import Action, Budget, Product, Offer
+from .forms import ActionForm, OfferForm, BudgetForm
+from .models import Action, Budget, Product, Offer, OfferedItem
 
 
 class CreateActionView(LoginRequiredMixin, CreateView):
     model = Action
     template_name = 'club/actions-form.html'
-    fields = ['action', 'category', 'amount', 'date']
+    # fields = ['action', 'category', 'amount', 'date']
+    form_class = ActionForm
     success_url = reverse_lazy('club:list-action')
 
     def form_valid(self, form, *args, **kwargs):
@@ -34,7 +41,8 @@ class AjaxTemplateMixin(object):
 class UpdateActionView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
     model = Action
     template_name = 'club/actions-form.html'
-    fields = ['action', 'category', 'amount', 'date']
+    # fields = ['action', 'category', 'amount', 'date']
+    form_class = ActionForm
     success_url = reverse_lazy('club:list-action')
 
 
@@ -47,7 +55,8 @@ class DeleteActionView(LoginRequiredMixin, DeleteView):
 class ListActionView(LoginRequiredMixin, BaseCreateView, ListView):
     model = Action
     template_name = 'club/actions-list.html'
-    fields = ['action', 'category', 'amount', 'date']
+    # fields = ['action', 'category', 'amount', 'date']
+    form_class = ActionForm
     success_url = reverse_lazy('club:list-action')
 
     def form_valid(self, form, *args, **kwargs):
@@ -59,7 +68,8 @@ class ListActionView(LoginRequiredMixin, BaseCreateView, ListView):
 class BudgetCreateView(LoginRequiredMixin, CreateView):
     model = Budget
     template_name = 'club/budget-form.html'
-    fields = ['agent', 'amount', 'month', 'working_days']
+    # fields = ['agent', 'amount', 'month', 'working_days']
+    form_class = BudgetForm
     success_url = reverse_lazy('club:list-budget')
 
     # def form_valid(self, form, *args, **kwargs):
@@ -71,20 +81,23 @@ class BudgetCreateView(LoginRequiredMixin, CreateView):
 class BudgetUpdateView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
     model = Budget
     template_name = 'club/budget-form.html'
-    fields = ['agent', 'amount', 'month', 'working_days']
+    # fields = ['agent', 'amount', 'month', 'working_days']
+    form_class = BudgetForm
     success_url = reverse_lazy('club:list-budget')
 
 
 class BudgetListView(LoginRequiredMixin, BaseCreateView, ListView):
     model = Budget
     template_name = 'club/budget-list.html'
-    fields = ['agent', 'amount', 'month', 'working_days']
+    # fields = ['agent', 'amount', 'month', 'working_days']
+    form_class = BudgetForm
     success_url = reverse_lazy('club:list-budget')
 
     def form_valid(self, form, *args, **kwargs):
         # form = super(CreateActionView, self).form_valid(*args, **kwargs)
         form.instance.club = self.request.user.club
         return super().form_valid(form, *args, **kwargs)
+
 
 class DeleteBudgetView(LoginRequiredMixin, DeleteView):
     model = Budget
@@ -96,35 +109,258 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
     model = Product
     template_name = 'club/product-form.html'
     fields = ['title', 'value']
-    success_url = '/'
+    success_url = reverse_lazy('club:list-product')
+
+    def form_valid(self, form, *args, **kwargs):
+        # form = super(CreateActionView, self).form_valid(*args, **kwargs)
+        form.instance.club = self.request.user.club
+        return super().form_valid(form, *args, **kwargs)
 
 
-class ProductUpdateView(LoginRequiredMixin, UpdateView):
+class ProductUpdateView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
     model = Product
     template_name = 'club/product-form.html'
     fields = ['title', 'value']
-    success_url = '/'
+    success_url = reverse_lazy('club:list-product')
 
 
-class ProductListView(LoginRequiredMixin, ListView):
+class ProductListView(LoginRequiredMixin, BaseCreateView, ListView):
     model = Product
     template_name = 'club/product-list.html'
+    fields = ['title', 'value']
+    success_url = reverse_lazy('club:list-product')
+
+    def form_valid(self, form, *args, **kwargs):
+        # form = super(CreateActionView, self).form_valid(*args, **kwargs)
+        form.instance.club = self.request.user.club
+        return super().form_valid(form, *args, **kwargs)
+
+
+class DeleteProductView(LoginRequiredMixin, DeleteView):
+    model = Product
+    success_message = 'Successfully deleted'
+    success_url = reverse_lazy('club:list-product')
+
+
+OfferedItemFormset = inlineformset_factory(
+    Offer, OfferedItem, fields=('product', 'quantity', 'number_of_months')
+)
+
+
+class OfferItemCreateView(CreateView):
+    template_name = 'club/offer_item-form.html'
+    fields = ['product', 'quantity', 'number_of_months']
+    success_url = reverse_lazy('')
 
 
 class OfferCreateView(LoginRequiredMixin, CreateView):
     model = Offer
     template_name = 'club/offer-form.html'
-    fields = ['agent', 'offered_items', 'meeting_type', 'category', 'date', 'accepted', 'referrals']
-    success_url = '/'
+    # fields = ['agent', 'meeting_type', 'category', 'date', 'accepted', 'referrals']
+    form_class = OfferForm
+    success_url = reverse_lazy('club:list-offer')
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial.update({
+            'client_type': self.request.GET.get('client_type', default=None)
+        })
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        offered_item_form = OfferedItemFormset()
+
+        return self.render_to_response(
+            self.get_context_data(
+                form=form, offered_item_form=offered_item_form
+            )
+        )
+
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        offered_item_form = OfferedItemFormset(self.request.POST)
+
+        if form.is_valid() and offered_item_form.is_valid():
+            return self.form_valid(form, offered_item_form)
+        else:
+            return self.form_invalid(form, offered_item_form)
+
+    def form_valid(self, form, offered_item_form):
+
+        form.instance.agent = self.request.user
+        self.object = form.save()
+        offered_item_form.instance = self.object
+        offered_item_form.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form, offered_item_form):
+
+        return self.render_to_response(
+            self.get_context_data(
+                form=form, offered_item_form=offered_item_form
+            )
+        )
 
 
-class OfferUpdateView(LoginRequiredMixin, UpdateView):
+class OfferedItemUpdateFormView(LoginRequiredMixin, UpdateView):
+    template_name = 'club/partials/offered_item-form.html'
+    model = OfferedItem
+    fields = ['product', 'quantity', 'number_of_months']
+
+    def get_success_url(self):
+        messages.success(
+            self.request,
+            'Successfully submitted'
+        )
+        return reverse('club:offered_item-form', args=[self.object.id])
+
+
+class OfferedItemCreateFormView(LoginRequiredMixin, CreateView):
+    template_name = 'club/partials/offered_item-form.html'
+    model = OfferedItem
+    fields = ['product', 'quantity', 'number_of_months']
+
+    def get_context_data(self, *args, **kwargs):
+        # print(self.request.path, 'eeeeeeeeeeeeeeeeeee')
+        ctx = super().get_context_data(*args, **kwargs)
+        offer_item_id = self.request.GET.get('of')
+
+        ctx.update({
+            'offer_item_id': offer_item_id
+        })
+        return ctx
+
+    def form_valid(self, form, *args, **kwargs):
+        offer_item_id = self.request.GET.get('of')
+        form.instance.offer_id = int(offer_item_id)
+        return super().form_valid(form, *args, **kwargs)
+
+
+    def get_success_url(self):
+        messages.success(
+            self.request,
+            'Successfully submitted'
+        )
+        print(self.request.path)
+        return reverse('club:offered_item-form', args=[self.object.id])
+
+
+class DeleteOfferedItemView(LoginRequiredMixin, DeleteView):
+    model = OfferedItem
+    success_message = 'Successfully deleted'
+    success_url = reverse_lazy('club:list-offer')
+
+    def delete(self, request, *args, **kwargs):
+        response = super().delete(request, *args, **kwargs)
+        return HttpResponse('')
+
+
+class OfferedItemView(TemplateView):
+    template_name = 'club/offer-update-form.html'
+
+
+class OfferPartialUpdateView(LoginRequiredMixin, UpdateView):
+    model = Offer
+    template_name = 'club/partials/offer-form.html'
+    # fields = ['agent', 'meeting_type', 'category', 'date', 'accepted', 'referrals']
+    form_class = OfferForm
+    success_url = reverse_lazy('club:list-offer')
+
+
+class OfferUpdateView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
     model = Offer
     template_name = 'club/offer-form.html'
-    fields = ['agent', 'offered_items', 'meeting_type', 'category', 'date', 'accepted', 'referrals']
-    success_url = '/'
+    # fields = ['agent', 'meeting_type', 'category', 'date', 'accepted', 'referrals']
+    form_class = OfferForm
+    success_url = reverse_lazy('club:list-offer')
+
+    def form_valid(self, form, *args, **kwargs):
+
+        response = super(OfferUpdateView, self).form_valid(form, *args, **kwargs)
+        return HttpResponse(status=204, headers={'HX-Trigger': 'dataChanged'})
 
 
-class OfferListView(LoginRequiredMixin, ListView):
+class OfferList(ListView):
+    model = Offer
+    template_name = 'club/partials/offer-list.html'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        client_type = self.request.GET.get('client_type', default=None)
+        if not client_type:
+            return queryset
+
+        return queryset.filter(client_type=client_type)
+
+
+class OfferListView(LoginRequiredMixin, BaseCreateView, ListView):
     model = Offer
     template_name = 'club/offer-list.html'
+    # fields = ['agent', 'meeting_type', 'category', 'date', 'accepted', 'referrals']
+    form_class = OfferForm
+    success_url = reverse_lazy('club:list-offer')
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial.update({
+            'client_type': self.request.GET.get('client_type', default=None)
+        })
+        return initial
+
+    def get_queryset(self):
+        queryset = super(OfferListView, self).get_queryset()
+
+        client_type = self.request.GET.get('client_type', default=None)
+        if not client_type:
+            return queryset
+        return queryset.filter(client_type=client_type)
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        offered_item_form = OfferedItemFormset()
+        self.object_list = self.get_queryset()
+
+        return self.render_to_response(
+            self.get_context_data(
+                form=form, offered_item_form=offered_item_form
+            )
+        )
+
+    # def post(self, request, *args, **kwargs):
+    #     self.object = None
+    #     form_class = self.get_form_class()
+    #     form = self.get_form(form_class)
+    #     offered_item_form = OfferedItemFormset(self.request.POST)
+    #
+    #     if form.is_valid() and offered_item_form.is_valid():
+    #         return self.form_valid(form, offered_item_form)
+    #     else:
+    #         return self.form_invalid(form, offered_item_form)
+
+    # def form_valid(self, form, offered_item_form):
+    #
+    #     self.object = form.save()
+    #     offered_item_form.instance = self.object
+    #     offered_item_form.save()
+    #     return HttpResponseRedirect(self.get_success_url())
+    #
+    # def form_invalid(self, form, offered_item_form):
+    #
+    #     return self.render_to_response(
+    #         self.get_context_data(
+    #             form=form, offered_item_form=offered_item_form
+    #         )
+    #     )
+
+
+class DeleteOfferView(LoginRequiredMixin, DeleteView):
+    model = Offer
+    success_message = 'Successfully deleted'
+    success_url = reverse_lazy('club:list-offer')

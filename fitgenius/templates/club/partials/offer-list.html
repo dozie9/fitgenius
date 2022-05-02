@@ -1,0 +1,30 @@
+{% for offer in object_list %}
+  <tr>
+    <td>{{ forloop.counter }}</td>
+    <td>{{ offer.agent }}</td>
+    <td>
+      <ul>
+        {% for item in offer.offereditem_set.all %}
+          <li>x{{ item.quantity }} <b>{{ item.product.title }}</b> {{ item.number_of_months }} months</li>
+        {% endfor %}
+      </ul>
+    </td>
+    <td>{{ offer.client_type }}</td>
+    <td>{{ offer.meeting_type }}</td>
+    <td>{{ offer.category }}</td>
+    <td>{{ offer.accepted }}</td>
+    <td>{{ offer.referrals }}</td>
+    <td>{{ offer.date }}</td>
+
+    <td>
+      <button title="Edit" type="button" hx-target="#dialog" hx-get="{% url 'club:partial-update-offer' offer.id %}"
+              class="btn btn-outline-warning waves-effect waves-light">
+        <i class="bx bx-edit-alt"></i>
+      </button>
+      <button title="Delete" type="button" class="btn btn-outline-danger waves-effect waves-light" data-bs-toggle="modal"
+              data-bs-target="#delete-offer-{{ offer.id }}"><i class="bx bx-trash-alt"></i>
+      </button>
+    </td>
+
+  </tr>
+{% endfor %}
