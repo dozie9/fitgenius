@@ -44,8 +44,7 @@ LOCALE_PATHS = [str(ROOT_DIR / "locale")]
 
 DATABASES = {
     "default": env.db(
-        "DATABASE_URL",
-        default="postgres://localhost/fitgenius",
+        "DATABASE_URL"
     ),
 }
 
