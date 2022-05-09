@@ -34,6 +34,6 @@ urlpatterns = [
     path('htmx/offered_item-form/create/', OfferedItemCreateFormView.as_view(), name='create-offered_item-form'),
     path('htmx/offered_item-form/<int:pk>/', OfferedItemUpdateFormView.as_view(), name='offered_item-form'),
     path('htmx/offered_item-form/delete/<int:pk>/', DeleteOfferedItemView.as_view(), name='offered_item-delete'),
-    path('offered-item/', OfferedItemView.as_view())
+    path('offered-item/', OfferedItemView.as_view()),
 
 ]

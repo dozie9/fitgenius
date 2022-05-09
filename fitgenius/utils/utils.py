@@ -1,6 +1,8 @@
-
+from django.contrib.auth import get_user_model
+from django.core.exceptions import PermissionDenied
 from guardian.shortcuts import assign_perm, remove_perm
 
+User = get_user_model()
 
 # assigns user's permission based on user's group
 def assign_user_permission(user):
@@ -37,3 +39,11 @@ def remove_user_permission(user):
 def remove_user_perm_on_company_change(user, old_company):
     remove_perm('change_company', user, old_company)
     remove_perm('view_company', user, old_company)
+
+
+class PortalRestrictionMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_superuser or request.user.user_type == User.MANAGER:
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            raise PermissionDenied

@@ -11,6 +11,7 @@ class ClubAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['title', 'value', 'club']
+    prepopulated_fields = {"slug": ("title",)}
 
 
 @admin.register(Budget)

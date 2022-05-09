@@ -1,4 +1,6 @@
+from allauth.account.views import SignupView
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.models import inlineformset_factory
 from django.http import HttpResponseRedirect
@@ -6,11 +8,16 @@ from django.http.response import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse_lazy, reverse
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import CreateView, UpdateView, BaseCreateView, DeleteView
+from django.views.generic.edit import CreateView, UpdateView, BaseCreateView, DeleteView, FormView
 from django.views.generic.list import ListView
+from guardian.mixins import PermissionListMixin, PermissionRequiredMixin
 
 from .forms import ActionForm, OfferForm, BudgetForm
 from .models import Action, Budget, Product, Offer, OfferedItem
+from ..users.forms import UserSignupForm
+from ..utils.utils import PortalRestrictionMixin
+
+User = get_user_model()
 
 
 class CreateActionView(LoginRequiredMixin, CreateView):
@@ -23,6 +30,7 @@ class CreateActionView(LoginRequiredMixin, CreateView):
     def form_valid(self, form, *args, **kwargs):
         # form = super(CreateActionView, self).form_valid(*args, **kwargs)
         form.instance.agent = self.request.user
+        form.instance.club = self.request.user.club
         return super().form_valid(form, *args, **kwargs)
 
 
@@ -38,30 +46,38 @@ class AjaxTemplateMixin(object):
         return super().dispatch(request, *args, **kwargs)
 
 
-class UpdateActionView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
+class UpdateActionView(LoginRequiredMixin, PermissionRequiredMixin, AjaxTemplateMixin, UpdateView):
     model = Action
     template_name = 'club/actions-form.html'
     # fields = ['action', 'category', 'amount', 'date']
     form_class = ActionForm
     success_url = reverse_lazy('club:list-action')
+    permission_required = ['club.access_action']
+    raise_exception = True
 
 
-class DeleteActionView(LoginRequiredMixin, DeleteView):
+class DeleteActionView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Action
     success_message = 'Successfully deleted'
     success_url = reverse_lazy('club:list-action')
+    permission_required = ['club.access_action']
+    raise_exception = True
 
 
-class ListActionView(LoginRequiredMixin, BaseCreateView, ListView):
+class ListActionView(LoginRequiredMixin, PermissionListMixin, BaseCreateView, ListView):
     model = Action
     template_name = 'club/actions-list.html'
     # fields = ['action', 'category', 'amount', 'date']
     form_class = ActionForm
     success_url = reverse_lazy('club:list-action')
+    permission_required = ['club.access_action']
+    raise_exception = True
+    # get_objects_for_user_extra_kwargs = {'use_groups': False}
 
     def form_valid(self, form, *args, **kwargs):
         # form = super(CreateActionView, self).form_valid(*args, **kwargs)
         form.instance.agent = self.request.user
+        form.instance.club = self.request.user.club
         return super().form_valid(form, *args, **kwargs)
 
 
@@ -263,20 +279,24 @@ class OfferedItemView(TemplateView):
     template_name = 'club/offer-update-form.html'
 
 
-class OfferPartialUpdateView(LoginRequiredMixin, UpdateView):
+class OfferPartialUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Offer
     template_name = 'club/partials/offer-form.html'
     # fields = ['agent', 'meeting_type', 'category', 'date', 'accepted', 'referrals']
     form_class = OfferForm
     success_url = reverse_lazy('club:list-offer')
+    raise_exception = True
+    permission_required = ['club.access_offer']
 
 
-class OfferUpdateView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
+class OfferUpdateView(LoginRequiredMixin, PermissionRequiredMixin, AjaxTemplateMixin, UpdateView):
     model = Offer
     template_name = 'club/offer-form.html'
     # fields = ['agent', 'meeting_type', 'category', 'date', 'accepted', 'referrals']
     form_class = OfferForm
     success_url = reverse_lazy('club:list-offer')
+    permission_required = ['club.access_offer']
+    raise_exception = True
 
     def form_valid(self, form, *args, **kwargs):
 
@@ -284,9 +304,11 @@ class OfferUpdateView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
         return HttpResponse(status=204, headers={'HX-Trigger': 'dataChanged'})
 
 
-class OfferList(ListView):
+class OfferList(LoginRequiredMixin, PermissionListMixin, ListView):
     model = Offer
     template_name = 'club/partials/offer-list.html'
+    permission_required = ['club.access_offer']
+    raise_exception = True
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -298,12 +320,14 @@ class OfferList(ListView):
         return queryset.filter(client_type=client_type)
 
 
-class OfferListView(LoginRequiredMixin, BaseCreateView, ListView):
+class OfferListView(LoginRequiredMixin, PermissionListMixin, BaseCreateView, ListView):
     model = Offer
     template_name = 'club/offer-list.html'
     # fields = ['agent', 'meeting_type', 'category', 'date', 'accepted', 'referrals']
     form_class = OfferForm
     success_url = reverse_lazy('club:list-offer')
+    permission_required = ['club.access_offer']
+    raise_exception = True
 
     def get_initial(self):
         initial = super().get_initial()
@@ -360,7 +384,9 @@ class OfferListView(LoginRequiredMixin, BaseCreateView, ListView):
     #     )
 
 
-class DeleteOfferView(LoginRequiredMixin, DeleteView):
+class DeleteOfferView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Offer
     success_message = 'Successfully deleted'
     success_url = reverse_lazy('club:list-offer')
+    permission_required = ['club.access_offer']
+    raise_exception = True

@@ -1,8 +1,8 @@
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch.dispatcher import receiver
+from guardian.shortcuts import assign_perm
 
-from .models import Action
-
+from .models import Action, Offer
 
 action_time_dict = {
     Action.MISSED_CALLS: 30,
@@ -18,3 +18,24 @@ action_time_dict = {
 @receiver(pre_save, sender=Action)
 def assign_action_time(sender, instance: Action, **kwargs):
     instance.time_spent = action_time_dict[instance.action]
+
+
+@receiver(post_save, sender=Action)
+def action_post_save(sender, instance: Action, created, **kwargs):
+    if created:
+        # assigning permission to agent
+        assign_perm('access_action', instance.agent, instance)
+
+        # assigning permission to manager
+        assign_perm('access_action', instance.club.manager, instance)
+
+
+@receiver(post_save, sender=Offer)
+def offer_post_save(sender, instance: Offer, created, **kwargs):
+    if created:
+        # assigning permission to agent
+        assign_perm('access_offer', instance.agent, instance)
+
+        # assigning permission to manager
+        assign_perm('access_offer', instance.club.manager, instance)
+

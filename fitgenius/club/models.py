@@ -1,8 +1,11 @@
+import uuid
+
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.template.defaultfilters import slugify
 
 User = get_user_model()
 
@@ -12,6 +15,7 @@ class Club(models.Model):
     manager = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clubs')
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
         return self.name
@@ -21,9 +25,16 @@ class Product(models.Model):
     title = models.CharField(max_length=255)
     value = models.DecimalField(max_digits=18, decimal_places=2)
     club = models.ForeignKey(Club, on_delete=models.SET_NULL, null=True)
+    slug = models.SlugField(null=False, unique=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
         return f'{self.title} | {self.value}'
+
+    def save(self, *args, **kwargs):  # new
+        if not self.slug:
+            self.slug = slugify(self.title)
+        return super().save(*args, **kwargs)
 
 
 class Budget(models.Model):
@@ -35,6 +46,7 @@ class Budget(models.Model):
 
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
         return self.agent.username
@@ -48,6 +60,7 @@ class OfferedItem(models.Model):
 
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
         if self.number_of_months is not None:
@@ -96,10 +109,12 @@ class Offer(models.Model):
     accepted = models.BooleanField()
     referrals = models.PositiveIntegerField(default=0)
     agent = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, null=True)
     date = models.DateField(default=timezone.now)
 
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     class Meta:
         permissions = (
@@ -167,17 +182,20 @@ class Action(models.Model):
     action = models.CharField(max_length=255, choices=ACTION_CHOICES)
     agent = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     date = models.DateField(default=timezone.now)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, null=True)
 
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
-    permissions = (
-        ('access_action', 'Access action'),
-    )
+    class Meta:
+        permissions = (
+            ('access_action', 'Access action'),
+        )
 
     def __str__(self):
         return f'{self.date} {self.action}'
 
     def get_absolute_url(self):
-        return reverse('action-detail', kwargs={'pk': self.pk})
+        return reverse('club:update-action', kwargs={'pk': self.pk})
 

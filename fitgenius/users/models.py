@@ -1,5 +1,7 @@
+import uuid
+
 from django.contrib.auth.models import AbstractUser
-from django.db.models import (CharField, ForeignKey, CASCADE)
+from django.db.models import (CharField, ForeignKey, CASCADE, UUIDField)
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
@@ -24,8 +26,9 @@ class User(AbstractUser):
         (AGENT, AGENT.title()),
     )
 
-    user_type = CharField(_("Role"), choices=ROLES, max_length=255, null=True)
+    user_type = CharField(_("Role"), choices=ROLES, default=AGENT, max_length=255, null=True)
     club = ForeignKey('club.Club', on_delete=CASCADE, null=True)
+    uuid = UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def get_absolute_url(self):
         """Get url for user's detail view.

@@ -1,9 +1,11 @@
-{% extends "base.html" %}
+{% extends "partials/base.html" %}
 
 {% block title %}Forbidden (403){% endblock %}
 
-{% block content %}
+{% block contents %}
+  <section class="text-center">
 <h1>Forbidden (403)</h1>
 
-<p>{% if exception %}{{ exception }}{% else %}You're not allowed to access this page.{% endif %}</p>
-{% endblock content %}
+    <p>{% if exception %}{{ exception }}{% else %}You're not allowed to access this page.{% endif %}</p>
+  </section>
+{% endblock contents %}
