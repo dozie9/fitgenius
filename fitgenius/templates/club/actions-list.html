@@ -686,8 +686,11 @@
         $('#edit-action-{{ action.id }}-body').load('{% url 'club:update-action' action.id %}', function () {
           $('#edit-action-{{ action.id }}').modal('show');
           //formAjaxSubmit('#edit-action-{{ action.id }}-body', '#edit-action-{{ action.id }}');
+
         });
       })
     {% endfor %}
+
   </script>
+
 {% endblock %}

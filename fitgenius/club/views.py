@@ -15,7 +15,7 @@ from guardian.mixins import PermissionListMixin, PermissionRequiredMixin
 from .forms import ActionForm, OfferForm, BudgetForm
 from .models import Action, Budget, Product, Offer, OfferedItem
 from ..users.forms import UserSignupForm
-from ..utils.utils import PortalRestrictionMixin
+from ..utils.utils import PortalRestrictionMixin, AjaxTemplateMixin
 
 User = get_user_model()
 
@@ -32,18 +32,6 @@ class CreateActionView(LoginRequiredMixin, CreateView):
         form.instance.agent = self.request.user
         form.instance.club = self.request.user.club
         return super().form_valid(form, *args, **kwargs)
-
-
-class AjaxTemplateMixin(object):
-    def dispatch(self, request, *args, **kwargs):
-        if not hasattr(self, 'ajax_template_name'):
-            split = self.template_name.split('.html')
-            split[-1] = '_inner'
-            split.append('.html')
-            self.ajax_template_name = ''.join(split)
-        if request.is_ajax():
-            self.template_name = self.ajax_template_name
-        return super().dispatch(request, *args, **kwargs)
 
 
 class UpdateActionView(LoginRequiredMixin, PermissionRequiredMixin, AjaxTemplateMixin, UpdateView):
@@ -88,10 +76,15 @@ class BudgetCreateView(LoginRequiredMixin, CreateView):
     form_class = BudgetForm
     success_url = reverse_lazy('club:list-budget')
 
-    # def form_valid(self, form, *args, **kwargs):
-    #
-    #     form.instance.agent = self.request.user
-    #     return super().form_valid(form, *args, **kwargs)
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def form_valid(self, form, *args, **kwargs):
+
+        form.instance.club = form.instance.agent.club
+        return super().form_valid(form, *args, **kwargs)
 
 
 class BudgetUpdateView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
@@ -101,6 +94,11 @@ class BudgetUpdateView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
     form_class = BudgetForm
     success_url = reverse_lazy('club:list-budget')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
 
 class BudgetListView(LoginRequiredMixin, BaseCreateView, ListView):
     model = Budget
@@ -109,9 +107,14 @@ class BudgetListView(LoginRequiredMixin, BaseCreateView, ListView):
     form_class = BudgetForm
     success_url = reverse_lazy('club:list-budget')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def form_valid(self, form, *args, **kwargs):
         # form = super(CreateActionView, self).form_valid(*args, **kwargs)
-        form.instance.club = self.request.user.club
+        form.instance.club = form.instance.agent.club
         return super().form_valid(form, *args, **kwargs)
 
 

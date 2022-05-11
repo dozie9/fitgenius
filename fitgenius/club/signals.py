@@ -33,9 +33,13 @@ def action_post_save(sender, instance: Action, created, **kwargs):
 @receiver(post_save, sender=Offer)
 def offer_post_save(sender, instance: Offer, created, **kwargs):
     if created:
+        # assigning offer to agent's club
+        offer_qs = Offer.objects.filter(id=instance.id)
+        offer_qs.update(club=instance.agent.club)
+
         # assigning permission to agent
         assign_perm('access_offer', instance.agent, instance)
 
         # assigning permission to manager
-        assign_perm('access_offer', instance.club.manager, instance)
+        assign_perm('access_offer', offer_qs.first().club.manager, instance)
 

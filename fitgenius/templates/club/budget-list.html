@@ -12,6 +12,8 @@
   <!-- Responsive datatable examples -->
   <link href="{% static 'libs/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css' %}" rel="stylesheet"
         type="text/css"/>
+
+  <link rel="stylesheet" href="{% static 'css/datepicker.min.css' %}" />
 {% endblock %}
 {% block contents %}
   <div class="row">
@@ -33,7 +35,7 @@
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                  <form id="add-budget-form" method="post" action="{% url 'club:add-budget' %}">
+                  <form id="add-budget-form" class="budget-form" method="post" action="{% url 'club:add-budget' %}">
                     {% csrf_token %}
                     {{ form|crispy }}
                   </form>
@@ -164,6 +166,7 @@
 
   <!-- Datatable init js -->
   <script src="{% static 'js/pages/datatables.init.js' %}"></script>
+  <script src="{% static 'js/datepicker.min.js' %}"></script>
   <script>
 
     var formAjaxSubmit = function (form, modal) {
@@ -193,8 +196,52 @@
         $('#edit-budget-{{ budget.id }}-body').load('{% url 'club:update-budget' budget.id %}', function () {
           $('#edit-budget-{{ budget.id }}').modal('show');
           //formAjaxSubmit('#edit-budget-{{ budget.id }}-body', '#edit-budget-{{ budget.id }}');
+          $('.picker').datepicker({
+              zIndex: 2048,
+              startView: 1,
+              autoHide: true,
+              format: 'yyyy/mm'
+            });
+          document.getElementById('edit-budget-form-{{ budget.id }}').addEventListener('submit', evt => {
+            evt.preventDefault()
+            let formObj = evt.target
+            let month = [...formObj.getElementsByClassName('picker')][0]
+
+            month.value = new Date(month.value).toLocaleDateString()
+            console.log(month, month.value)
+            formObj.submit()
+          })
         });
       })
     {% endfor %}
+/*
+  document.querySelectorAll('input[type="month"]').forEach(n => {
+    n.addEventListener('change', evt => {
+      //evt.target.value = new Date(evt.target.value).toLocaleDateString()
+      evt.target.datetimepicker()
+    })
+  })
+*/
+
+  $('.picker').datepicker({
+    zIndex: 2048,
+    startView: 1,
+    autoHide: true,
+    format: 'yyyy-mm'
+  });
+
+  document.querySelectorAll('.budget-form').forEach(formObj => {
+    formObj.addEventListener('submit', evt => {
+      evt.preventDefault()
+
+      let month = [...formObj.getElementsByClassName('picker')][0]
+
+      month.value = new Date(month.value).toLocaleDateString()
+
+      formObj.submit()
+    })
+    //const formData = new FormData(formObj)
+  })
+
   </script>
 {% endblock %}
