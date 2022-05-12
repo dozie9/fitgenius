@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.forms.widgets import TextInput
-from tempus_dominus.widgets import DatePicker
+# from tempus_dominus.widgets import DatePicker
 
 from .models import Action, Budget, Product, Offer, OfferedItem
 
@@ -31,7 +31,7 @@ class OfferForm(forms.ModelForm):
         model = Offer
         fields = ['client_type', 'meeting_type', 'category', 'date', 'accepted', 'referrals']
         widgets = {
-            'date': DatePicker()
+            'date': DateInput()
         }
 
 

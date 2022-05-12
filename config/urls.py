@@ -9,9 +9,9 @@ from fitgenius.core.views import HomeRedirectView
 
 urlpatterns = [
     path("", HomeRedirectView.as_view(), name="home"),
-    # path(
-    #     "about/", TemplateView.as_view(template_name="pages/about.html"), name="about"
-    # ),
+    path(
+        "about/", TemplateView.as_view(template_name="pages/about.html"), name="about"
+    ),
     path('', include("fitgenius.core.urls", namespace='core')),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
