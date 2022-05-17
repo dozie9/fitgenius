@@ -2,18 +2,20 @@ from allauth.account.views import SignupView
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Sum, OuterRef, F, Subquery
 from django.forms.models import inlineformset_factory
 from django.http import HttpResponseRedirect
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse_lazy, reverse
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, View
 from django.views.generic.edit import CreateView, UpdateView, BaseCreateView, DeleteView, FormView
 from django.views.generic.list import ListView
 from guardian.mixins import PermissionListMixin, PermissionRequiredMixin
 
 from .forms import ActionForm, OfferForm, BudgetForm
-from .models import Action, Budget, Product, Offer, OfferedItem
+from .models import Action, Budget, Product, Offer, OfferedItem, WorkingHour
+from .utils import total_month_sale
 from ..users.forms import UserSignupForm
 from ..utils.utils import PortalRestrictionMixin, AjaxTemplateMixin
 
@@ -100,12 +102,40 @@ class BudgetUpdateView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
         return kwargs
 
 
-class BudgetListView(LoginRequiredMixin, BaseCreateView, ListView):
+class BudgetSalesView(LoginRequiredMixin, View):
+    # TODO: Restrict to only club manager
+    def get(self, request, *args, **kwargs):
+        month = request.GET.get('month')
+        year = request.GET.get('year')
+        day = request.GET.get('day')
+        # agent = request.GET.get('agent')
+
+        club = request.user.club
+        data = []
+
+        for agent in club.user_set.filter(user_type=User.AGENT):
+            sales, budget = total_month_sale(agent.uuid, year, month)
+            data.append({
+                'sales': sales['sales'],
+                'username': agent.username,
+                'budget': budget['amount'],
+                'name': agent.get_full_name()
+            })
+
+        # print(request.user, data, 'USER')
+
+        return JsonResponse(data, safe=False)
+
+
+class BudgetListView(LoginRequiredMixin, PortalRestrictionMixin, BaseCreateView, ListView):
     model = Budget
     template_name = 'club/budget-list.html'
     # fields = ['agent', 'amount', 'month', 'working_days']
     form_class = BudgetForm
     success_url = reverse_lazy('club:list-budget')
+
+    def get_queryset(self):
+        return Budget.objects.filter(club=self.request.user.club)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -143,7 +173,7 @@ class ProductUpdateView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
     success_url = reverse_lazy('club:list-product')
 
 
-class ProductListView(LoginRequiredMixin, BaseCreateView, ListView):
+class ProductListView(LoginRequiredMixin, PortalRestrictionMixin, BaseCreateView, ListView):
     model = Product
     template_name = 'club/product-list.html'
     fields = ['title', 'value']
@@ -258,13 +288,12 @@ class OfferedItemCreateFormView(LoginRequiredMixin, CreateView):
         form.instance.offer_id = int(offer_item_id)
         return super().form_valid(form, *args, **kwargs)
 
-
     def get_success_url(self):
         messages.success(
             self.request,
             'Successfully submitted'
         )
-        print(self.request.path)
+
         return reverse('club:offered_item-form', args=[self.object.id])
 
 
@@ -393,3 +422,17 @@ class DeleteOfferView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     success_url = reverse_lazy('club:list-offer')
     permission_required = ['club.access_offer']
     raise_exception = True
+
+
+class SetWorkingHoursView(LoginRequiredMixin, CreateView):
+    http_method_names = ['post']
+    model = WorkingHour
+    fields = ['hours']
+    # template_name = 'dashboard/dashboard.html'
+
+    def get_success_url(self):
+        return self.request.POST.get('next')
+
+    def form_valid(self, form):
+        form.instance.agent = self.request.user
+        return super().form_valid(form)

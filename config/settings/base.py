@@ -72,7 +72,7 @@ DJANGO_APPS = [
     "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "django.contrib.humanize", # Handy template tags
+    "django.contrib.humanize", # Handy template tags
     "django.contrib.admin",
     "django.forms",
 ]
@@ -82,7 +82,8 @@ THIRD_PARTY_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
-    "guardian"
+    "guardian",
+    "rest_framework"
 ]
 
 LOCAL_APPS = [
@@ -193,7 +194,8 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
                 "fitgenius.users.context_processors.allauth_settings",
-                "fitgenius.club.context_processors.club_context"
+                "fitgenius.club.context_processors.club_context",
+                "fitgenius.club.context_processors.has_working_hours"
             ],
         },
     }

@@ -200,3 +200,18 @@ class Action(models.Model):
     def get_absolute_url(self):
         return reverse('club:update-action', kwargs={'pk': self.pk})
 
+
+class WorkingHour(models.Model):
+    agent = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField(default=datetime.date.today)
+    hours = models.PositiveIntegerField()
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    class Meta:
+        ordering = ['-date']
+        unique_together = [
+            ['agent', 'date']
+        ]
+
+    def __str__(self):
+        return f"{self.agent.username} | {self.date.strftime('%m/%d/%Y')} | {self.hours}"

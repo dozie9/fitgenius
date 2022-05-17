@@ -1,0 +1,49 @@
+<div class="modal fade" id="workingHourModal" data-bs-backdrop="static" tabindex="-1"
+     aria-labelledby="workingHourModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom-0">
+        {% comment %}
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        {% endcomment %}
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-4">
+          <div class="avatar-md mx-auto mb-4">
+            <div class="avatar-title bg-light rounded-circle text-primary h1">
+              <i class="mdi mdi-timetable"></i>
+            </div>
+          </div>
+          <div class="row justify-content-center">
+            <div class="col-xl-10">
+              <h4 class="text-primary">Working Hours</h4>
+              <p class="text-muted font-size-14 mb-4">
+                Set the number of hours you will work today.
+              </p>
+
+              <form method="post" action="{% url 'club:set-working-hours' %}" class="input-group bg-light rounded">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <input type="number" name="hours" step="1" min="0" class="form-control bg-transparent border-0"
+                       placeholder="No. of hours" aria-label="Recipient's username"
+                       aria-describedby="button-addon2"/>
+
+                <button class="btn btn-primary" type="submit" id="button-addon2">
+                  <i class="bx bxs-paper-plane"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  let HAS_WORKING_HOURS = {{ has_working_hours|yesno:"true,false" }};
+  const myModal = new bootstrap.Modal(document.getElementById("workingHourModal"))
+
+  if (!HAS_WORKING_HOURS) {
+    myModal.show()
+  };
+</script>

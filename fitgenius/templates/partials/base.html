@@ -85,6 +85,7 @@
     {% include 'partials/rightsidebar.html' %}
     {% endblock %}
 
+
             {% block javascript %}
             <!-- JAVASCRIPT -->
             <script src="{% static 'libs/jquery/dist/jquery.min.js' %}"></script>
@@ -92,12 +93,14 @@
             <script src="{% static 'libs/metismenu/dist/metisMenu.min.js' %}"></script>
             <script src="{% static 'libs/simplebar/dist/simplebar.min.js' %}"></script>
             <script src="{% static 'libs/node-waves/dist/waves.min.js' %}"></script>
+              <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 
             {% block extra_javascript %}
             {% endblock %}
 
             <script src="{% static 'js/app.js' %}"></script>
+              {% include 'club/partials/working-hour-form.html' %}
             {% endblock javascript %}
         </body>
 

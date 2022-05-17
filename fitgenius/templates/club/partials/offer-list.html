@@ -5,7 +5,12 @@
     <td>
       <ul>
         {% for item in offer.offereditem_set.all %}
-          <li>x{{ item.quantity }} <b>{{ item.product.title }}</b> {{ item.number_of_months }} months</li>
+          <li>
+            x{{ item.quantity }} <b>{{ item.product.title }}</b>
+            {% if item.number_of_months %}
+              {{ item.number_of_months }} months
+            {% endif %}
+          </li>
         {% endfor %}
       </ul>
     </td>

@@ -10,7 +10,7 @@
             <div class="col-7">
               <div class="text-primary p-3">
                 <h5 class="text-primary">Welcome Back !</h5>
-                <p>Skote Dashboard</p>
+                <p>fitGenius Dashboard</p>
               </div>
             </div>
             <div class="col-5 align-self-end">
@@ -24,8 +24,8 @@
               <div class="avatar-md profile-user-wid mb-4">
                 <img src="{% static 'images/users/avatar-1.jpg' %}" alt="" class="img-thumbnail rounded-circle">
               </div>
-              <h5 class="font-size-15 text-truncate">Henry Price</h5>
-              <p class="text-muted mb-0 text-truncate">UI/UX Designer</p>
+              <h5 class="font-size-15 text-truncate">{{ user.get_full_name }}</h5>
+{#              <p class="text-muted mb-0 text-truncate">UI/UX Designer</p>#}
             </div>
 
             <div class="col-sm-8">
@@ -167,24 +167,5 @@
 {% endblock %}
 
 {% block extra_javascript %}
-  <script>
-    let url = "{% url 'club:budget-sales' %}"
-    axios.get(url, {
-      params: {
-        month: 5,
-        year: 2022
-      }
-    })
-      .then(response => {
-        console.log(response.data)
-        let budgetSalesTbody = document.getElementById('budget-sales')
-        response.data.forEach(item => {
-          budgetSalesTbody.innerHTML += `
-      <tr>
-        <td>${item.name ? item.name : item.username}</td><td>${item.sales}</td><td>${item.budget}</td>
-      </tr>
-      `
-        })
-      })
-  </script>
+
 {% endblock %}

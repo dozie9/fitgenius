@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Club, Product, Budget, OfferedItem, Offer, Action
+from .models import (Club, Product, Budget, OfferedItem, Offer, Action, WorkingHour)
 
 
 @admin.register(Club)
@@ -37,3 +37,8 @@ class OfferAdmin(admin.ModelAdmin):
 @admin.register(Action)
 class ActionAdmin(admin.ModelAdmin):
     list_display = ['agent', 'time_spent', 'date', 'amount', 'action', 'category']
+
+
+@admin.register(WorkingHour)
+class WorkingHourAdmin(admin.ModelAdmin):
+    list_display = ['agent', 'date', 'hours']
