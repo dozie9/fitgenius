@@ -1,5 +1,5 @@
 import json
-from decimal import Decimal
+from decimal import Decimal, DivisionByZero
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -37,7 +37,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         try:
             percent_budget_reached = (this_month_sales/Decimal(this_month_budget)) * 100
-        except ZeroDivisionError:
+        except (ZeroDivisionError, DivisionByZero):
             percent_budget_reached = 0
 
         product_aggr = product_totals(agent_uuid)
