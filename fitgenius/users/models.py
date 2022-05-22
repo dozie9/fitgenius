@@ -1,4 +1,5 @@
 import uuid
+import decimal
 
 from django.contrib.auth.models import AbstractUser
 from django.db.models import (CharField, ForeignKey, CASCADE, UUIDField, Sum, Count)
@@ -88,7 +89,10 @@ class User(AbstractUser):
         return sales['sales']
 
     def ref_sales_ratio(self):
-        return self.get_referrals()/self.get_sales()
+        try:
+            return self.get_referrals()/self.get_sales()
+        except decimal.InvalidOperation:
+            return 0
 
     def finalized_sales_on_ref(self):
         from fitgenius.club.models import Offer
