@@ -23,7 +23,7 @@ def month_sale_vs_budget(agent_uuid, year, month):
     budget = budget_qs.aggregate(amount=Sum('amount'))
     # budget_dict = BudgetSerializer(budget_qs, many=True)
 
-    return sales['sales'], budget['amount']
+    return 0 if sales['sales'] is None else sales['sales'], 0 if budget['amount'] is None else budget['amount']
 
 
 def current_day_sales(agent_uuid):

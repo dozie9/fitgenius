@@ -33,7 +33,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         now = timezone.now()
 
         this_month_sales, this_month_budget = month_sale_vs_budget(agent_uuid, now.year, now.month)
-        percent_budget_reached = (this_month_sales/this_month_budget) * 100
+
+        try:
+            percent_budget_reached = (this_month_sales/this_month_budget) * 100
+        except ZeroDivisionError:
+            percent_budget_reached = 0
+
         product_aggr = product_totals(agent_uuid)
         product_by_month = product_sale_by_month(agent_uuid)
         print(product_aggr, json.dumps(product_aggr, cls=DecimalEncoder))
