@@ -20,7 +20,7 @@ class MonthInput(TextInput):
 class ActionForm(forms.ModelForm):
     class Meta:
         model = Action
-        fields = ['action', 'category', 'amount', 'date']
+        fields = ['action', 'category', 'date']
         widgets = {
             'date': DateInput()
         }

@@ -3,6 +3,7 @@ import datetime
 
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import OuterRef, F, Sum, Subquery, Count
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -24,13 +25,13 @@ class Club(models.Model):
 
 class Product(models.Model):
     title = models.CharField(max_length=255)
-    value = models.DecimalField(max_digits=18, decimal_places=2)
-    club = models.ForeignKey(Club, on_delete=models.SET_NULL, null=True)
+    # value = models.DecimalField(max_digits=18, decimal_places=2)
+    # club = models.ForeignKey(Club, on_delete=models.SET_NULL, null=True)
     slug = models.SlugField(null=False, unique=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
-        return f'{self.title} | {self.value}'
+        return f'{self.title}'
 
     def save(self, *args, **kwargs):  # new
         if not self.slug:
@@ -53,20 +54,43 @@ class Budget(models.Model):
         return self.agent.username
 
 
+class OfferedItemManager(models.Manager):
+    def agent_offered_items(self, agent_uuid):
+        return self.filter(offer__agent__uuid=agent_uuid)
+
+
 class OfferedItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     offer = models.ForeignKey('Offer', on_delete=models.CASCADE, null=True)
-    quantity = models.PositiveIntegerField()
+    # quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=18, decimal_places=2, default=0)
     number_of_months = models.PositiveIntegerField(null=True, blank=True)
 
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
+    objects = OfferedItemManager()
+
     def __str__(self):
         if self.number_of_months is not None:
-            return f'{self.product} | {self.quantity} | {self.number_of_months} months'
-        return f'{self.product} | {self.quantity}'
+            return f'{self.product} | {self.price} | {self.number_of_months} months'
+        return f'{self.product} | {self.price}'
+
+
+class OfferManager(models.Manager):
+
+    def agent_sales(self, agent_uuid):
+        offered_items_qs = OfferedItem.objects.filter(offer=OuterRef('pk')).annotate(
+            total_price=F('price')
+        ).values('offer')
+
+        oi_sum = offered_items_qs.annotate(oi_sum=Sum('total_price')).values('oi_sum')
+
+        offer_qs = self.filter(agent__uuid=agent_uuid).annotate(
+            total_sales=Subquery(oi_sum), no_product=Count('offereditem')
+        )
+        return offer_qs
 
 
 class Offer(models.Model):
@@ -111,11 +135,13 @@ class Offer(models.Model):
     referrals = models.PositiveIntegerField(default=0)
     agent = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     club = models.ForeignKey(Club, on_delete=models.CASCADE, null=True)
-    date = models.DateField(default=timezone.now)
+    date = models.DateField(default=timezone.now().date)
 
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    objects = OfferManager()
 
     class Meta:
         permissions = (
@@ -182,7 +208,7 @@ class Action(models.Model):
     category = models.CharField(max_length=255, choices=CATEGORY_CHOICES)
     action = models.CharField(max_length=255, choices=ACTION_CHOICES)
     agent = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    date = models.DateField(default=datetime.date.today)
+    date = models.DateField(default=timezone.now().date)
     club = models.ForeignKey(Club, on_delete=models.CASCADE, null=True)
 
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -203,7 +229,7 @@ class Action(models.Model):
 
 class WorkingHour(models.Model):
     agent = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = models.DateField(default=datetime.date.today)
+    date = models.DateField(default=timezone.now().date)
     hours = models.PositiveIntegerField()
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 

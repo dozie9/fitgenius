@@ -10,7 +10,7 @@ class ClubAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['title', 'value', 'club']
+    list_display = ['title']
     prepopulated_fields = {"slug": ("title",)}
 
 
@@ -21,7 +21,7 @@ class BudjectAdmin(admin.ModelAdmin):
 
 @admin.register(OfferedItem)
 class OfferedItemAdmin(admin.ModelAdmin):
-    list_display = ['product', 'quantity', 'number_of_months']
+    list_display = ['product', 'price', 'number_of_months']
 
 
 class OfferedItemInline(admin.TabularInline):
@@ -36,7 +36,7 @@ class OfferAdmin(admin.ModelAdmin):
 
 @admin.register(Action)
 class ActionAdmin(admin.ModelAdmin):
-    list_display = ['agent', 'time_spent', 'date', 'amount', 'action', 'category']
+    list_display = ['agent', 'time_spent', 'date', 'action', 'category']
 
 
 @admin.register(WorkingHour)

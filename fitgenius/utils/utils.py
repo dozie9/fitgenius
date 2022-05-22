@@ -1,3 +1,7 @@
+import json
+from datetime import datetime, date
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from guardian.shortcuts import assign_perm, remove_perm
@@ -59,3 +63,21 @@ class AjaxTemplateMixin(object):
         if request.is_ajax():
             self.template_name = self.ajax_template_name
         return super().dispatch(request, *args, **kwargs)
+
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return str(obj)
+        return json.JSONEncoder.default(self, obj)
+
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, date):
+            return o.isoformat()
+        return json.JSONEncoder.default(self, o)
+
+
+class DecimalDateTimeEncoder(DecimalEncoder, DateTimeEncoder):
+    pass

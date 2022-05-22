@@ -89,13 +89,14 @@
           <li class="menu-title" key="t-apps">Apps</li>
 
           {% if user.user_type == user.MANAGER %}
+        {% comment %}
           <li>
             <a href="{% url 'club:list-product' %}" class="waves-effect">
               <i class="bx bx-calendar"></i>
               <span key="t-dashboards">Product</span>
             </a>
 
-          </li>
+          </li>{% endcomment %}
 
           <li>
             <a href="{% url 'club:list-budget' %}" class="waves-effect">
@@ -119,6 +120,7 @@
               <i class="bx bx-bitcoin"></i>
               <span key="t-crypto">Offer</span>
             </a>
+          {% comment %}
             <ul class="sub-menu" aria-expanded="false">
               {% for an_offer in ClubOffer.CLIENT_TYPES %}
                   <li>
@@ -126,8 +128,17 @@
                   </li>
               {% endfor %}
             </ul>
+            {% endcomment %}
 
           </li>
+          {% for an_offer in ClubOffer.CLIENT_TYPES %}
+            <li>
+              <a href="{% url 'club:list-offer' %}?client_type={{ an_offer.0 }}" key="t-horizontal" class="waves-effect">
+                <i class="bx bx-news"></i>
+                <span>{{ an_offer.1 }}</span>
+              </a>
+            </li>
+          {% endfor %}
         <li>
           {% if user.user_type == user.MANAGER %}
             <a href="javascript: void(0);" class="has-arrow waves-effect">

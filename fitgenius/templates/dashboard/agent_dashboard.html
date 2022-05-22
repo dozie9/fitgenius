@@ -2,79 +2,38 @@
 {% load static humanize %}
 
 {% block contents %}
-  <div class="row">
-    <div class="col-xl-4">
-      <div class="card overflow-hidden">
-        <div class="bg-primary bg-soft">
-          <div class="row">
-            <div class="col-7">
-              <div class="text-primary p-3">
-                <h5 class="text-primary">Welcome Back !</h5>
-                <p>fitGenius Dashboard</p>
-              </div>
-            </div>
-            <div class="col-5 align-self-end">
-              <img src="{% static 'images/profile-img.png' %}" alt="" class="img-fluid">
-            </div>
-          </div>
-        </div>
-        <div class="card-body pt-0">
-          <div class="row">
-            <div class="col-sm-4">
-              <div class="avatar-md profile-user-wid mb-4">
-                <img src="{% static 'images/users/avatar-1.jpg' %}" alt="" class="img-thumbnail rounded-circle">
-              </div>
-              <h5 class="font-size-15 text-truncate">{{ user.get_full_name }}</h5>
-{#              <p class="text-muted mb-0 text-truncate">UI/UX Designer</p>#}
-            </div>
-
-            <div class="col-sm-8">
-              <div class="pt-4">
-
-                <div class="row">
-                  <div class="col-6">
-                    <h5 class="font-size-15">125</h5>
-                    <p class="text-muted mb-0">Projects</p>
-                  </div>
-                  <div class="col-6">
-                    <h5 class="font-size-15">$1245</h5>
-                    <p class="text-muted mb-0">Revenue</p>
-                  </div>
-                </div>
-                <div class="mt-4">
-                  <a href="javascript: void(0);" class="btn btn-primary waves-effect waves-light btn-sm">View Profile <i
-                    class="mdi mdi-arrow-right ms-1"></i></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-body">
-          <h4 class="card-title mb-4">Monthly Earning</h4>
-          <div class="row">
-            <div class="col-sm-6">
-              <p class="text-muted">This month</p>
-              <h3>$34,252</h3>
-              <p class="text-muted"><span class="text-success me-2"> 12% <i class="mdi mdi-arrow-up"></i> </span> From
-                previous period</p>
-
-              <div class="mt-4">
-                <a href="javascript: void(0);" class="btn btn-primary waves-effect waves-light btn-sm">View More <i
-                  class="mdi mdi-arrow-right ms-1"></i></a>
-              </div>
-            </div>
-            <div class="col-sm-6">
-              <div class="mt-4 mt-sm-0">
-                <div id="radialBar-chart" class="apex-charts"></div>
-              </div>
-            </div>
-          </div>
-          <p class="text-muted mb-0">We craft digital, graphic and dimensional thinking.</p>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+          <tr>
+            <th>Current Day</th>
+            <th>Current Month</th>
+            <th>Efficiency</th>
+            <th>Finalized sales on referrals</th>
+            <th>Ref/sales Ratio</th>
+            <th>Calls per hour</th>
+            <th>% Total Finalized New Clients</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>{{ user.get_current_day_sales }}</td>
+            <td>{{ sales_aggr.this_month_sales }}</td>
+            <td>{{ user.get_efficiency }}</td>
+            <td>{{ user.finalized_sales_on_ref }}</td>
+            <td>{{ user.ref_sales_ratio | floatformat:4 }}</td>
+            <td>{{ user.get_call_per_hour }}</td>
+            <td>{{ user.finalized_new_clients }}</td>
+          </tr>
+          </tbody>
+        </table>
       </div>
     </div>
+  </div>
+  <div class="row">
+
     <div class="col-xl-8">
       <div class="row">
         <div class="col-md-4">
@@ -123,7 +82,7 @@
               <div class="d-flex">
                 <div class="flex-grow-1">
                   <p class="text-muted fw-medium">Average Sales</p>
-                  <h4 class="mb-0">{{sales_aggr.avg_sales | default_if_none:0 | floatformat:2 | intcomma}}</h4>
+                  <h4 class="mb-0">{{ sales_aggr.avg_sales | default_if_none:0 | floatformat:2 | intcomma }}</h4>
                 </div>
 
                 <div class="flex-shrink-0 align-self-center">
@@ -143,7 +102,8 @@
       <div class="card">
         <div class="card-body">
           <div class="d-sm-flex flex-wrap">
-            <h4 class="card-title mb-4">Email Sent</h4>
+            <h4 class="card-title mb-4">Sales Bar</h4>
+            {% comment %}
             <div class="ms-auto">
               <ul class="nav nav-pills">
                 <li class="nav-item">
@@ -157,9 +117,73 @@
                 </li>
               </ul>
             </div>
+            {% endcomment %}
           </div>
 
           <div id="stacked-column-chart" class="apex-charts" dir="ltr"></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="col-xl-4">
+      <div class="card overflow-hidden">
+        <div class="bg-primary bg-soft">
+          <div class="row">
+            <div class="col-7">
+              <div class="text-primary p-3">
+                <h5 class="text-primary">Welcome Back !</h5>
+                <p>fitGenius Dashboard</p>
+              </div>
+            </div>
+            <div class="col-5 align-self-end">
+              <img src="{% static 'images/profile-img.png' %}" alt="" class="img-fluid">
+            </div>
+          </div>
+        </div>
+        <div class="card-body pt-0">
+          <div class="row">
+            <div class="col-sm-4">
+              <div class="avatar-md profile-user-wid mb-4">
+                <img src="{% static 'images/users/avatar-1.jpg' %}" alt="" class="img-thumbnail rounded-circle">
+              </div>
+              <h5 class="font-size-15 text-truncate">{{ user.get_full_name }}</h5>
+              {#              <p class="text-muted mb-0 text-truncate">UI/UX Designer</p>#}
+            </div>
+
+            <div class="col-sm-8">
+              <div class="pt-4">
+
+                <div class="row">
+                  <div class="col-6">
+                    <h5 class="font-size-15">125</h5>
+                    <p class="text-muted mb-0">Projects</p>
+                  </div>
+                  <div class="col-6">
+                    <h5 class="font-size-15">$1245</h5>
+                    <p class="text-muted mb-0">Revenue</p>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <a href="javascript: void(0);" class="btn btn-primary waves-effect waves-light btn-sm">View Profile <i
+                    class="mdi mdi-arrow-right ms-1"></i></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title mb-4">Budget Completion Gauge</h4>
+          <div id="gauge-chart" class="e-charts"></div>
+
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title mb-4">Product Sales Chart</h4>
+
+          <div id="donut_chart" class="apex-charts"></div>
         </div>
       </div>
     </div>
@@ -167,5 +191,119 @@
 {% endblock %}
 
 {% block extra_javascript %}
+  <!-- apexcharts -->
+  <script src="{% static 'libs/apexcharts/dist/apexcharts.min.js' %}"></script>
+  <!-- echarts js -->
+  <script src="{% static 'libs/echarts/dist/echarts.min.js' %}"></script>
+  <!-- echarts init -->
+  <script>
+    let dom = document.getElementById("gauge-chart"), myChart = echarts.init(dom), app = {};
+    let option = {
+      tooltip: {formatter: "{a} <br/>{b} : {c}%"},
+      toolbox: {feature: {restore: {title: "Refresh"}, saveAsImage: {title: "Download Image"}}},
+      series: [{
+        name: "Business indicator",
+        type: "gauge",
+        detail: {formatter: "{value}%"},
+        axisLine: {lineStyle: {color: [[.2, "#34c38f"], [.8, "#556ee6"], [1, "#f46a6a"]], width: 20}},
+        data: [{value: {{sales_aggr.percent_budget_reached}}, name: "Completion rate"}]
+      }]
+    }
+    /*
+    setInterval(function () {
+        option.series[0].data[0].value = +(100 * Math.random()).toFixed(2), myChart.setOption(option, !0)
+    }, 2e3), option && "object" == typeof option && myChart.setOption(option, !0);
+    */
+    myChart.setOption(option)
 
+
+    let products = {{ sales_aggr.product_aggr_json | safe }};
+
+    let options = {
+      chart: {height: 320, type: "donut"},
+      series: products.map(item => parseFloat(item.total)),
+      labels: products.map(item => item.product),
+      colors: ["#34c38f", "#556ee6", "#f46a6a", "#50a5f1", "#f1b44c"],
+      legend: {
+        show: !0,
+        position: "bottom",
+        horizontalAlign: "center",
+        verticalAlign: "middle",
+        floating: !1,
+        fontSize: "14px",
+        offsetX: 0
+      },
+      responsive: [{breakpoint: 600, options: {chart: {height: 240}, legend: {show: !1}}}]
+    };
+    (chart = new ApexCharts(document.querySelector("#donut_chart"), options)).render();
+
+    function groupBy(objectArray, property) {
+      return objectArray.reduce(function (acc, obj) {
+        let key = obj[property]
+        if (!acc[key]) {
+          acc[key] = []
+        }
+        acc[key].push(obj)
+        return acc
+      }, {})
+    }
+
+    let productsByMonth = {{ sales_aggr.product_by_month | safe }};
+    let series = productsByMonth.map(item => {
+      let serie = {
+        name: item.product,
+        data: item.sales.map(i => parseFloat(i.total_price))
+      }
+      return serie
+    })
+    let months = productsByMonth.map(item => item.sales.map(i => i.month));
+    let uniqMonths = [...new Set(months.flat())]
+    console.log(series)
+    console.log(uniqMonths)
+
+    var stackOptions = {
+      series: series,
+      chart: {
+        type: 'bar',
+        height: 350,
+        stacked: true,
+        toolbar: {
+          show: true
+        },
+        zoom: {
+          enabled: true
+        }
+      },
+      responsive: [{
+        breakpoint: 480,
+        options: {
+          legend: {
+            position: 'bottom',
+            offsetX: -10,
+            offsetY: 0
+          }
+        }
+      }],
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          borderRadius: 10
+        },
+      },
+      xaxis: {
+        type: 'datetime',
+        categories: uniqMonths,
+      },
+      legend: {
+        position: 'right',
+        offsetY: 40
+      },
+      fill: {
+        opacity: 1
+      }
+    };
+
+    var chart = new ApexCharts(document.querySelector("#stacked-column-chart"), stackOptions);
+    chart.render();
+  </script>
 {% endblock %}

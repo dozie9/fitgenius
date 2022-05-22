@@ -15,7 +15,7 @@ from guardian.mixins import PermissionListMixin, PermissionRequiredMixin
 
 from .forms import ActionForm, OfferForm, BudgetForm
 from .models import Action, Budget, Product, Offer, OfferedItem, WorkingHour
-from .utils import total_month_sale
+from .utils import month_sale_vs_budget
 from ..users.forms import UserSignupForm
 from ..utils.utils import PortalRestrictionMixin, AjaxTemplateMixin
 
@@ -114,11 +114,11 @@ class BudgetSalesView(LoginRequiredMixin, View):
         data = []
 
         for agent in club.user_set.filter(user_type=User.AGENT):
-            sales, budget = total_month_sale(agent.uuid, year, month)
+            sales, budget = month_sale_vs_budget(agent.uuid, year, month)
             data.append({
-                'sales': sales['sales'],
+                'sales': sales,
                 'username': agent.username,
-                'budget': budget['amount'],
+                'budget': budget,
                 'name': agent.get_full_name()
             })
 
@@ -153,7 +153,7 @@ class DeleteBudgetView(LoginRequiredMixin, DeleteView):
     success_message = 'Successfully deleted'
     success_url = reverse_lazy('club:list-budget')
 
-
+"""
 class ProductCreateView(LoginRequiredMixin, CreateView):
     model = Product
     template_name = 'club/product-form.html'
@@ -189,16 +189,16 @@ class DeleteProductView(LoginRequiredMixin, DeleteView):
     model = Product
     success_message = 'Successfully deleted'
     success_url = reverse_lazy('club:list-product')
-
+"""
 
 OfferedItemFormset = inlineformset_factory(
-    Offer, OfferedItem, fields=('product', 'quantity', 'number_of_months')
+    Offer, OfferedItem, fields=('product', 'price', 'number_of_months')
 )
 
 
 class OfferItemCreateView(CreateView):
     template_name = 'club/offer_item-form.html'
-    fields = ['product', 'quantity', 'number_of_months']
+    fields = ['product', 'price', 'number_of_months']
     success_url = reverse_lazy('')
 
 
@@ -258,7 +258,7 @@ class OfferCreateView(LoginRequiredMixin, CreateView):
 class OfferedItemUpdateFormView(LoginRequiredMixin, UpdateView):
     template_name = 'club/partials/offered_item-form.html'
     model = OfferedItem
-    fields = ['product', 'quantity', 'number_of_months']
+    fields = ['product', 'price', 'number_of_months']
 
     def get_success_url(self):
         messages.success(
@@ -271,7 +271,7 @@ class OfferedItemUpdateFormView(LoginRequiredMixin, UpdateView):
 class OfferedItemCreateFormView(LoginRequiredMixin, CreateView):
     template_name = 'club/partials/offered_item-form.html'
     model = OfferedItem
-    fields = ['product', 'quantity', 'number_of_months']
+    fields = ['product', 'price', 'number_of_months']
 
     def get_context_data(self, *args, **kwargs):
         # print(self.request.path, 'eeeeeeeeeeeeeeeeeee')

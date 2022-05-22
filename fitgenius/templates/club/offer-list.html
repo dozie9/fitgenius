@@ -42,7 +42,7 @@
                       <thead>
                       <tr>
                         <th scope="col">Product</th>
-                        <th scope="col">Quantity</th>
+                        <th scope="col">Price</th>
                         <th scope="col">Number of months</th>
                       </tr>
                       </thead>
@@ -54,7 +54,7 @@
                             {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
                             {{ form.product }}
                           </td>
-                          <td>{{ form.quantity }}</td>
+                          <td>{{ form.price }}</td>
                           <td>{{ form.number_of_months }}</td>
                         </tr>
                       {% endfor %}

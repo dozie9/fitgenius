@@ -1,10 +1,12 @@
 from django.urls import path
 
-from .views import (CreateActionView, UpdateActionView, ListActionView, BudgetCreateView, BudgetUpdateView,
-                    BudgetListView, ProductUpdateView, ProductListView, ProductCreateView, OfferCreateView,
-                    OfferUpdateView, OfferListView, DeleteActionView, DeleteBudgetView, DeleteProductView,
-                    DeleteOfferView, OfferedItemUpdateFormView, OfferedItemCreateFormView, OfferedItemView,
-                    DeleteOfferedItemView, OfferList, OfferPartialUpdateView, BudgetSalesView, SetWorkingHoursView)
+from .views import (
+    CreateActionView, UpdateActionView, ListActionView, BudgetCreateView, BudgetUpdateView, BudgetListView,
+    # ProductUpdateView, ProductListView, ProductCreateView, DeleteProductView,
+    OfferCreateView, OfferUpdateView, OfferListView, DeleteActionView, DeleteBudgetView,
+    DeleteOfferView, OfferedItemUpdateFormView, OfferedItemCreateFormView, OfferedItemView,
+    DeleteOfferedItemView, OfferList, OfferPartialUpdateView, BudgetSalesView, SetWorkingHoursView
+)
 
 app_name = "club"
 
@@ -19,10 +21,10 @@ urlpatterns = [
     path('budget/delete/<int:pk>/', DeleteBudgetView.as_view(), name='delete-budget'),
     path('budgets/', BudgetListView.as_view(), name='list-budget'),
 
-    path('product/add/', ProductCreateView.as_view(), name='add-product'),
-    path('product/update/<int:pk>/', ProductUpdateView.as_view(), name='update-product'),
-    path('product/delete/<int:pk>/', DeleteProductView.as_view(), name='delete-product'),
-    path('products/', ProductListView.as_view(), name='list-product'),
+    # path('product/add/', ProductCreateView.as_view(), name='add-product'),
+    # path('product/update/<int:pk>/', ProductUpdateView.as_view(), name='update-product'),
+    # path('product/delete/<int:pk>/', DeleteProductView.as_view(), name='delete-product'),
+    # path('products/', ProductListView.as_view(), name='list-product'),
 
     path('offer/add/', OfferCreateView.as_view(), name='add-offer'),
     path('offer/update/<int:pk>/', OfferUpdateView.as_view(), name='update-offer'),
