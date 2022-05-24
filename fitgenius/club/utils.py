@@ -1,6 +1,9 @@
+import pandas as pd
+
 from django.core.serializers import serialize
 from django.db.models import OuterRef, F, Sum, Subquery, Count
 from django.db.models.functions import TruncMonth
+from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework.renderers import JSONRenderer
 
@@ -73,6 +76,29 @@ def product_sale_by_month(agent_uuid):
         sales_by_month.append({'product': product.title, 'sales': list(sales)})
     return sales_by_month
 
+
+def generate_report(agents, file_type=None):
+    dataset = [
+        {'Global Salse': agent.get_sales(),
+         'Time worked': agent.get_time_worked(),
+         'username': agent.username
+         } for agent in agents]
+    # print(dataset)
+    df = pd.DataFrame(dataset).set_index('username')
+    return df
+
+
+def export_file(data_frame, file_type):
+    if file_type == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="report.csv"'
+        data_frame.to_csv(response)
+        return response
+    if file_type == 'excel':
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="report.xlsx"'
+        data_frame.to_excel(response, engine="xlsxwriter")
+        return response
 
 # def agent_sales(agent_uuid):
 #     offered_items_qs = OfferedItem.objects.filter(offer=OuterRef('pk')).annotate(

@@ -139,8 +139,9 @@
               </a>
             </li>
           {% endfor %}
+        {% if user.user_type == user.MANAGER %}
         <li>
-          {% if user.user_type == user.MANAGER %}
+
             <a href="javascript: void(0);" class="has-arrow waves-effect">
               <i class="bx bx-bitcoin"></i>
               <span key="t-crypto">User</span>
@@ -151,9 +152,17 @@
                   </li>
 
             </ul>
-          {% endif %}
+
 
           </li>
+        <li>
+            <a href="{% url 'club:report' %}" class="waves-effect">
+              <i class="bx bx-file"></i>
+
+              <span key="t-file-manager">Report</span>
+            </a>
+          </li>
+        {% endif %}
 
           {% comment %}
 

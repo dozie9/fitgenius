@@ -6,7 +6,7 @@ from django.db.models import Sum, OuterRef, F, Subquery
 from django.forms.models import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.http.response import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic.base import TemplateView, View
 from django.views.generic.edit import CreateView, UpdateView, BaseCreateView, DeleteView, FormView
@@ -15,7 +15,7 @@ from guardian.mixins import PermissionListMixin, PermissionRequiredMixin
 
 from .forms import ActionForm, OfferForm, BudgetForm
 from .models import Action, Budget, Product, Offer, OfferedItem, WorkingHour
-from .utils import month_sale_vs_budget
+from .utils import month_sale_vs_budget, generate_report, export_file
 from ..users.forms import UserSignupForm
 from ..utils.utils import PortalRestrictionMixin, AjaxTemplateMixin
 
@@ -436,3 +436,37 @@ class SetWorkingHoursView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.agent = self.request.user
         return super().form_valid(form)
+
+
+class ReportView(LoginRequiredMixin, TemplateView):
+    template_name = 'club/report.html'
+
+    def post(self, request, *args, **kwargs):
+
+        usernames = request.POST.getlist('username')
+        file_type = request.POST.get('file_type')
+        club = request.user.club
+        club_users = User.objects.filter(club=club, username__in=usernames)
+        # print(club_users)
+        if club_users.exits():
+            df = generate_report(club_users)
+            response = export_file(df, file_type)
+            return response
+
+        return redirect(request.path)
+
+    def get_context_data(self, **kwargs):
+        context = super(ReportView, self).get_context_data(**kwargs)
+
+        club_manager = self.request.user
+        club_users = User.objects.filter(club=club_manager.club)
+        # print(club_users)
+        # generate_report(club_users)
+
+        context.update({
+            'heading': 'Generate Report',
+            'pageview': 'Report',
+            'club_users': club_users
+        })
+
+        return context

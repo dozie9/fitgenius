@@ -5,7 +5,7 @@ from .views import (
     # ProductUpdateView, ProductListView, ProductCreateView, DeleteProductView,
     OfferCreateView, OfferUpdateView, OfferListView, DeleteActionView, DeleteBudgetView,
     DeleteOfferView, OfferedItemUpdateFormView, OfferedItemCreateFormView, OfferedItemView,
-    DeleteOfferedItemView, OfferList, OfferPartialUpdateView, BudgetSalesView, SetWorkingHoursView
+    DeleteOfferedItemView, OfferList, OfferPartialUpdateView, BudgetSalesView, SetWorkingHoursView, ReportView
 )
 
 app_name = "club"
@@ -40,6 +40,8 @@ urlpatterns = [
 
     path('b-sales/', BudgetSalesView.as_view(), name='budget-sales'),
 
-    path('set-working-hours/', SetWorkingHoursView.as_view(), name='set-working-hours')
+    path('set-working-hours/', SetWorkingHoursView.as_view(), name='set-working-hours'),
+
+    path('report/', ReportView.as_view(), name='report')
 
 ]
