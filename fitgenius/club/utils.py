@@ -58,7 +58,7 @@ def product_totals(agent_uuid, date=None):
         total = offered_items.filter(product=product).aggregate(total=Sum('price'))['total']
         totals.append({
             'product': product.title,
-            'total': total
+            'total': 0 if total is None else total
         })
     return totals
 
@@ -80,12 +80,36 @@ def product_sale_by_month(agent_uuid):
 def generate_report(agents, file_type=None):
     dataset = [
         {'Global Salse': agent.get_sales(),
+         'Memberships': agent.get_sales_for_product('Membership'),
+         'Services': agent.get_sales_for_product('Services'),
+         'Carnets': agent.get_sales_for_product('Carnets'),
+         'Fees': agent.get_sales_for_product('Fees'),
          'Time worked': agent.get_time_worked(),
+         'Efficiency': agent.get_efficiency(),
+         '#Total Sales': agent.get_number_of_sales('all'),
+         'No. Carnet Sales': agent.get_number_of_sales('Carnet'),
+         'No. Membership Sales': agent.get_number_of_sales('Membership'),
+         'No. Fees': agent.get_number_of_sales('Fee'),
+         'No. Services': agent.get_number_of_sales('Service'),
+         'Referrals': agent.get_referrals(),
+         'Extra Referrals': 0, # TODO: Get clarification
+         'Ref/Sale': 0, # TODO: Get clarification
+         'Total Ref/Sale': 0, # TODO: Get clarification
+         '>14 months': agent.get_sub_gt_14months(),
+         'Yearly 12-14 months': agent.get_number_of_sub_for_range(12, 14),
+         'Seasonal 6-11 months': agent.get_number_of_sub_for_range(6, 11),
+         'Trim. 3-5 months': agent.get_number_of_sub_for_range(3, 5),
+         'Monthly 1-2 months': agent.get_number_of_sub_for_range(1, 2),
+         'Other': 0, # TODO: Get clarification
+         'Total Months': agent.get_all_total_sub_months,
+         'Average Month': agent.get_average_month(),
+         'Average Membership Sale': agent.get_average_membership_sale(),
+         'Outcome % Scheduled work': 0, # TODO: Get clarification
          'username': agent.username
          } for agent in agents]
     # print(dataset)
     df = pd.DataFrame(dataset).set_index('username')
-    return df
+    return df.append(df.sum().rename('Total'))
 
 
 def export_file(data_frame, file_type):

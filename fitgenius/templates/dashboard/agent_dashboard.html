@@ -258,10 +258,8 @@
     })
     let months = productsByMonth.map(item => item.sales.map(i => i.month));
     let uniqMonths = [...new Set(months.flat())]
-    console.log(series)
-    console.log(uniqMonths)
 
-    var stackOptions = {
+    let stackOptions = {
       series: series,
       chart: {
         type: 'bar',

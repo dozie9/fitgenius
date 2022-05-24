@@ -88,6 +88,14 @@ class User(AbstractUser):
         sales = offer_qs.aggregate(sales=Sum('total_sales'))
         return sales['sales']
 
+    def get_number_of_sales(self, product_name):
+        from fitgenius.club.models import OfferedItem
+
+        if product_name == 'all':
+            return OfferedItem.objects.agent_offered_items(self.uuid).count()
+        offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(product__title=product_name)
+        return offered_items.count()
+
     def ref_sales_ratio(self):
         try:
             return self.get_referrals()/self.get_sales()
@@ -111,3 +119,48 @@ class User(AbstractUser):
         finalized_comebacks = offers.filter(category=Offer.COMEBACK, accepted=True).count()
 
         return ((finalized_prospects + finalized_comebacks) * 100) / (prospects + comebacks)
+
+    def get_sales_for_product(self, product_title):
+        from fitgenius.club.utils import product_totals
+
+        product_sales = product_totals(self.uuid)
+        # print(product_sales)
+        try:
+            membership_sales = next(x['total'] for x in product_sales if x['product'] == product_title)
+            return membership_sales
+        except StopIteration:
+            return 0
+
+    def get_sub_gt_14months(self):
+        from fitgenius.club.models import OfferedItem
+        return OfferedItem.objects.agent_offered_items(self.uuid).filter(number_of_months__gt=14).count()
+
+    def get_number_of_sub_for_range(self, min_months, max_months):
+        from fitgenius.club.models import OfferedItem
+        return OfferedItem.objects.agent_offered_items(self.uuid).filter(
+            number_of_months__range=(min_months, max_months)
+        ).count()
+
+    @property
+    def get_all_total_sub_months(self):
+        from fitgenius.club.models import OfferedItem
+        total = OfferedItem.objects.agent_offered_items(self.uuid).aggregate(sum=Sum('number_of_months'))['sum']
+        if total is None:
+            return 0
+        return total
+
+    def get_average_month(self):
+        try:
+            return self.get_sales_for_product('Membership')/self.get_all_total_sub_months
+        except ZeroDivisionError:
+            return 0
+
+    def get_average_membership_sale(self):
+        try:
+            return self.get_sales_for_product('Membership') / self.get_number_of_sales('Membership')
+        except ZeroDivisionError:
+            return 0
+
+    def get_percentage_scheduled_work(self):
+        offer_qs = self.offer_set
+
