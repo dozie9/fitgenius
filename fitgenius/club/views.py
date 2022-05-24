@@ -438,7 +438,7 @@ class SetWorkingHoursView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ReportView(LoginRequiredMixin, TemplateView):
+class ReportView(LoginRequiredMixin, PortalRestrictionMixin, TemplateView):
     template_name = 'club/report.html'
 
     def post(self, request, *args, **kwargs):
@@ -448,7 +448,7 @@ class ReportView(LoginRequiredMixin, TemplateView):
         club = request.user.club
         club_users = User.objects.filter(club=club, username__in=usernames)
         # print(club_users)
-        if club_users.exits():
+        if club_users.exists():
             df = generate_report(club_users)
             response = export_file(df, file_type)
             return response
