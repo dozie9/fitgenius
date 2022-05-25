@@ -8,18 +8,24 @@
         <div class="card-body">
 
 
-
           <form action="." method="post">
-          <select name="file_type">
-            <option value="excel">Excel</option>
-            <option value="csv">CSV</option>
-          </select>
-          {% csrf_token %}
-          <p><input type="checkbox" id="global"> Global</p>
+            <select name="file_type">
+              <option value="excel">Excel</option>
+              <option value="csv">CSV</option>
+            </select>
+            {% csrf_token %}
+            <div>
+              <input type="radio" checked id="global" name="report_type" value="global">
+              <label for="global">Global</label><br>
+              <input type="radio" id="new_client" name="report_type" value="new_client">
+              <label for="new_client">New Client</label><br>
+            </div>
+            <p><input type="checkbox" id="all"> Global</p>
             {% for agent in club_users %}
-              <p><input class="users-checkbox" type="checkbox" name="username" value="{{ agent.username }}"> {{ agent.username }} </p>
+              <p><input class="users-checkbox" type="checkbox" name="username"
+                        value="{{ agent.username }}"> {{ agent.username }} </p>
             {% endfor %}
-          <button>Download</button>
+            <button>Download</button>
           </form>
         </div>
       </div>
@@ -29,17 +35,17 @@
 
 {% block extra_javascript %}
   <script>
-  let globalBox = document.getElementById('global')
-  globalBox.addEventListener('change', e => {
-    if (e.target.checked) {
-      document.getElementsByClassName('users-checkbox').forEach(item => {
-        item.checked = true
-      })
-    } else {
-      document.getElementsByClassName('users-checkbox').forEach(item => {
-        item.checked = false
-      })
-    }
-  })
+    let globalBox = document.getElementById('all')
+    globalBox.addEventListener('change', e => {
+      if (e.target.checked) {
+        document.getElementsByClassName('users-checkbox').forEach(item => {
+          item.checked = true
+        })
+      } else {
+        document.getElementsByClassName('users-checkbox').forEach(item => {
+          item.checked = false
+        })
+      }
+    })
   </script>
 {% endblock %}

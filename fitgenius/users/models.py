@@ -79,25 +79,91 @@ class User(AbstractUser):
             return 0
         return self.get_time_worked()/no_calls
 
-    def get_referrals(self):
+    def get_referrals(self, client_type=None):
+        if client_type:
+            return self.offer_set.filter(client_type=client_type).aggregate(sum=Sum('referrals'))['sum']
         return self.offer_set.all().aggregate(sum=Sum('referrals'))['sum']
 
-    def get_sales(self):
+    def get_sales(self, client_type=None):
         offer_qs = self.offer_set.agent_sales(agent_uuid=self.uuid)
+        if not client_type:
 
-        sales = offer_qs.aggregate(sales=Sum('total_sales'))
-        return sales['sales']
+            sales = offer_qs.aggregate(sales=Sum('total_sales'))
+            return sales['sales']
+        return offer_qs.filter(client_type=client_type).aggregate(sales=Sum('total_sales'))['sales']
 
-    def get_number_of_sales(self, product_name):
+    def get_percent_sales_on_global(self, client_type):
+        # from fitgenius.club.models import Offer
+        global_sales = 0 if self.get_sales() is None else self.get_sales()
+        client_type_sales = 0 if self.get_sales(client_type) is None else self.get_sales(client_type)
+
+        try:
+            return (client_type_sales / global_sales) * 100
+        except ZeroDivisionError:
+            return 0
+
+    def get_number_of_sales(self, product_name='all', client_type=None, category=None):
         from fitgenius.club.models import OfferedItem
 
+        offered_items = OfferedItem.objects.agent_offered_items(self.uuid)
+        if client_type:
+            offered_items = offered_items.filter(offer__client_type=client_type)
+        if category:
+            offered_items = offered_items.filter(offer__category=category)
+
         if product_name == 'all':
-            return OfferedItem.objects.agent_offered_items(self.uuid).count()
-        offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(product__title=product_name)
+            return offered_items.count()
+        offered_items = offered_items.filter(product__title=product_name)
         return offered_items.count()
 
-    def ref_sales_ratio(self):
+    def get_number_prospect_sales(self):
+        from fitgenius.club.models import Offer
+        return self.get_number_of_sales(client_type=Offer.NEW_CLIENT, category=Offer.PROSPECT)
+
+    def get_number_comeback_sales(self):
+        from fitgenius.club.models import Offer
+        return self.get_number_of_sales(client_type=Offer.NEW_CLIENT, category=Offer.COMEBACK)
+
+    def get_number_prospect_finalized_sales(self):
+        from fitgenius.club.models import Offer, OfferedItem
+
+        offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(
+            offer__client_type=Offer.NEW_CLIENT, offer__category=Offer.PROSPECT, offer__accepted=True)
+        return offered_items.count()
+
+    def get_number_prospect_nonfinalized_sales(self):
+        from fitgenius.club.models import Offer, OfferedItem
+
+        offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(
+            offer__client_type=Offer.NEW_CLIENT, offer__category=Offer.PROSPECT, offer__accepted=False)
+        return offered_items.count()
+
+    def get_percentage_prospect_finalized(self):
         try:
+            return (self.get_number_prospect_finalized_sales() / self.get_number_prospect_sales()) * 100
+        except ZeroDivisionError:
+            return 0
+
+    def get_number_comeback_finalized_sales(self):
+        from fitgenius.club.models import Offer, OfferedItem
+
+        offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(
+            offer__client_type=Offer.NEW_CLIENT, offer__category=Offer.COMEBACK, offer__accepted=True)
+        return offered_items.count()
+
+    def get_percentage_total_finalized(self):
+        """filtered by new client"""
+        try:
+            return (self.get_number_prospect_finalized_sales() + self.get_number_comeback_finalized_sales()) * 100 / (
+                self.get_number_prospect_sales() + self.get_number_comeback_sales())
+        except ZeroDivisionError:
+            return 0
+
+    def ref_sales_ratio(self, client_type=None):
+        # TODO: Get clarification
+        try:
+            if client_type:
+                return self.get_referrals(client_type=client_type)/self.get_sales(client_type=client_type)
             return self.get_referrals()/self.get_sales()
         except decimal.InvalidOperation:
             return 0
@@ -108,6 +174,10 @@ class User(AbstractUser):
 
         sales = offer_qs.aggregate(sales=Sum('total_sales'))
         return sales['sales']
+
+    def get_number_of_category(self, client_type):
+        from fitgenius.club.models import Offer
+        offers = self.offer_set.all()
 
     def finalized_new_clients(self):
         from fitgenius.club.models import Offer
@@ -120,10 +190,10 @@ class User(AbstractUser):
 
         return ((finalized_prospects + finalized_comebacks) * 100) / (prospects + comebacks)
 
-    def get_sales_for_product(self, product_title):
+    def get_sales_for_product(self, product_title, client_type=None):
         from fitgenius.club.utils import product_totals
 
-        product_sales = product_totals(self.uuid)
+        product_sales = product_totals(self.uuid, client_type=client_type)
         # print(product_sales)
         try:
             membership_sales = next(x['total'] for x in product_sales if x['product'] == product_title)
@@ -131,36 +201,52 @@ class User(AbstractUser):
         except StopIteration:
             return 0
 
-    def get_sub_gt_14months(self):
-        from fitgenius.club.models import OfferedItem
+    def get_sub_gt_14months(self, client_type=None):
+        from fitgenius.club.models import OfferedItem, Offer
+        if client_type:
+            return OfferedItem.objects.agent_offered_items(self.uuid).filter(
+                number_of_months__gt=14, offer__client_type=client_type).count()
         return OfferedItem.objects.agent_offered_items(self.uuid).filter(number_of_months__gt=14).count()
 
-    def get_number_of_sub_for_range(self, min_months, max_months):
-        from fitgenius.club.models import OfferedItem
+    def get_number_of_sub_for_range(self, min_months, max_months, client_type=None):
+        from fitgenius.club.models import OfferedItem, Offer
+
+        if client_type:
+            return OfferedItem.objects.agent_offered_items(self.uuid).filter(
+                number_of_months__range=(min_months, max_months), offer__client_type=client_type
+            ).count()
+
         return OfferedItem.objects.agent_offered_items(self.uuid).filter(
             number_of_months__range=(min_months, max_months)
         ).count()
 
-    @property
-    def get_all_total_sub_months(self):
-        from fitgenius.club.models import OfferedItem
-        total = OfferedItem.objects.agent_offered_items(self.uuid).aggregate(sum=Sum('number_of_months'))['sum']
+    def get_all_total_sub_months(self, client_type=None):
+        """Total Months"""
+        from fitgenius.club.models import OfferedItem, Offer
+        if client_type:
+            total = OfferedItem.objects.agent_offered_items(self.uuid).filter(offer__client_type=client_type).aggregate(sum=Sum('number_of_months'))['sum']
+        else:
+            total = OfferedItem.objects.agent_offered_items(self.uuid).aggregate(sum=Sum('number_of_months'))['sum']
         if total is None:
             return 0
         return total
 
-    def get_average_month(self):
+    def get_average_month(self, client_type=None):
         try:
-            return self.get_sales_for_product('Membership')/self.get_all_total_sub_months
+            if client_type:
+                return self.get_sales_for_product('Membership', client_type=client_type) / self.get_all_total_sub_months(client_type=client_type)
+            return self.get_sales_for_product('Membership')/self.get_all_total_sub_months()
         except ZeroDivisionError:
             return 0
 
-    def get_average_membership_sale(self):
+    def get_average_membership_sale(self, client_type=None):
         try:
+            if client_type:
+                return self.get_sales_for_product('Membership', client_type=client_type) / self.get_number_of_sales('Membership', client_type=client_type)
             return self.get_sales_for_product('Membership') / self.get_number_of_sales('Membership')
         except ZeroDivisionError:
             return 0
 
     def get_percentage_scheduled_work(self):
-        offer_qs = self.offer_set
+        return 0
 

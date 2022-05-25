@@ -47,10 +47,12 @@ def efficiency(agent):
     return (total_time_spent * 100) / agent.time_worked
 
 
-def product_totals(agent_uuid, date=None):
+def product_totals(agent_uuid, date=None, client_type=None):
     offered_items = OfferedItem.objects.agent_offered_items(agent_uuid)
     if date is not None:
         offered_items = offered_items.filter(offer__date__year=date.year, offer__date__month=date.month)
+    if client_type:
+        offered_items = offered_items.filter(offer__client_type=client_type)
     products = Product.objects.all()
 
     totals = []
@@ -77,38 +79,76 @@ def product_sale_by_month(agent_uuid):
     return sales_by_month
 
 
-def generate_report(agents, file_type=None):
-    dataset = [
-        {'Global Salse': agent.get_sales(),
-         'Memberships': agent.get_sales_for_product('Membership'),
-         'Services': agent.get_sales_for_product('Services'),
-         'Carnets': agent.get_sales_for_product('Carnets'),
-         'Fees': agent.get_sales_for_product('Fees'),
-         'Time worked': agent.get_time_worked(),
-         'Efficiency': agent.get_efficiency(),
-         '#Total Sales': agent.get_number_of_sales('all'),
-         'No. Carnet Sales': agent.get_number_of_sales('Carnet'),
-         'No. Membership Sales': agent.get_number_of_sales('Membership'),
-         'No. Fees': agent.get_number_of_sales('Fee'),
-         'No. Services': agent.get_number_of_sales('Service'),
-         'Referrals': agent.get_referrals(),
-         'Extra Referrals': 0, # TODO: Get clarification
-         'Ref/Sale': 0, # TODO: Get clarification
-         'Total Ref/Sale': 0, # TODO: Get clarification
-         '>14 months': agent.get_sub_gt_14months(),
-         'Yearly 12-14 months': agent.get_number_of_sub_for_range(12, 14),
-         'Seasonal 6-11 months': agent.get_number_of_sub_for_range(6, 11),
-         'Trim. 3-5 months': agent.get_number_of_sub_for_range(3, 5),
-         'Monthly 1-2 months': agent.get_number_of_sub_for_range(1, 2),
-         'Other': 0, # TODO: Get clarification
-         'Total Months': agent.get_all_total_sub_months,
-         'Average Month': agent.get_average_month(),
-         'Average Membership Sale': agent.get_average_membership_sale(),
-         'Outcome % Scheduled work': 0, # TODO: Get clarification
-         'username': agent.username
-         } for agent in agents]
+def generate_report(agents, report_type=None):
+    if report_type == 'new_client':
+        dataset = [
+            {'Global Salse': agent.get_sales(client_type=Offer.NEW_CLIENT),
+             'Memberships': agent.get_sales_for_product('Membership', client_type=Offer.NEW_CLIENT),
+             'Services': agent.get_sales_for_product('Services', client_type=Offer.NEW_CLIENT),
+             'Carnets': agent.get_sales_for_product('Carnets', client_type=Offer.NEW_CLIENT),
+             'Fees': agent.get_sales_for_product('Fees', client_type=Offer.NEW_CLIENT),
+             '%Sales on Global': agent.get_percent_sales_on_global(client_type=Offer.NEW_CLIENT),
+             'Prospects': agent.get_number_of_sales(client_type=Offer.NEW_CLIENT, category=Offer.PROSPECT),
+             'Prospects Finalized': agent.get_number_prospect_finalized_sales(),
+             'Prospects Non Finalized': agent.get_number_prospect_nonfinalized_sales(),
+             '% Prospects Finalized': agent.get_percentage_prospect_finalized(),
+             'Comebacks': agent.get_number_of_sales(client_type=Offer.NEW_CLIENT, category=Offer.COMEBACK),
+             '% Total Finalized': agent.get_percentage_total_finalized(),
+             '#Total Sales': agent.get_number_of_sales(product_name='all', client_type=Offer.NEW_CLIENT),
+
+             'No. Carnet Sales': agent.get_number_of_sales('Carnet', client_type=Offer.NEW_CLIENT),
+             'No. Membership Sales': agent.get_number_of_sales('Membership', client_type=Offer.NEW_CLIENT),
+             'No. Fees': agent.get_number_of_sales('Fee', client_type=Offer.NEW_CLIENT),
+             'No. Services': agent.get_number_of_sales('Service', client_type=Offer.NEW_CLIENT),
+             'Referrals': agent.get_referrals(client_type=Offer.NEW_CLIENT),
+             'Extra Referrals': 0,  # TODO: Get clarification
+             'Ref/Sale': 0,  # TODO: Get clarification
+             'Total Ref/Sale': 0,  # TODO: Get clarification
+             '>14 months': agent.get_sub_gt_14months(client_type=Offer.NEW_CLIENT),
+             'Yearly 12-14 months': agent.get_number_of_sub_for_range(12, 14, client_type=Offer.NEW_CLIENT),
+             'Seasonal 6-11 months': agent.get_number_of_sub_for_range(6, 11, client_type=Offer.NEW_CLIENT),
+             'Trim. 3-5 months': agent.get_number_of_sub_for_range(3, 5, client_type=Offer.NEW_CLIENT),
+             'Monthly 1-2 months': agent.get_number_of_sub_for_range(1, 2, client_type=Offer.NEW_CLIENT),
+             'Other': 0,  # TODO: Get clarification
+             'Total Months': agent.get_all_total_sub_months(client_type=Offer.NEW_CLIENT),
+             'Average Month': agent.get_average_month(client_type=Offer.NEW_CLIENT),
+             'Average Membership Sale': agent.get_average_membership_sale(client_type=Offer.NEW_CLIENT),
+             'Outcome % Scheduled work': 0,  # TODO: Get clarification
+             'agent': agent.username
+             } for agent in agents]
+    else:
+        """global"""
+        dataset = [
+            {'Global Salse': agent.get_sales(),
+             'Memberships': agent.get_sales_for_product('Membership'),
+             'Services': agent.get_sales_for_product('Services'),
+             'Carnets': agent.get_sales_for_product('Carnets'),
+             'Fees': agent.get_sales_for_product('Fees'),
+             'Time worked': agent.get_time_worked(),
+             'Efficiency': agent.get_efficiency(),
+             '#Total Sales': agent.get_number_of_sales(product_name='all'),
+             'No. Carnet Sales': agent.get_number_of_sales('Carnet'),
+             'No. Membership Sales': agent.get_number_of_sales('Membership'),
+             'No. Fees': agent.get_number_of_sales('Fee'),
+             'No. Services': agent.get_number_of_sales('Service'),
+             'Referrals': agent.get_referrals(),
+             'Extra Referrals': 0, # TODO: Get clarification
+             'Ref/Sale': 0, # TODO: Get clarification
+             'Total Ref/Sale': 0, # TODO: Get clarification
+             '>14 months': agent.get_sub_gt_14months(),
+             'Yearly 12-14 months': agent.get_number_of_sub_for_range(12, 14),
+             'Seasonal 6-11 months': agent.get_number_of_sub_for_range(6, 11),
+             'Trim. 3-5 months': agent.get_number_of_sub_for_range(3, 5),
+             'Monthly 1-2 months': agent.get_number_of_sub_for_range(1, 2),
+             'Other': 0, # TODO: Get clarification
+             'Total Months': agent.get_all_total_sub_months(),
+             'Average Month': agent.get_average_month(),
+             'Average Membership Sale': agent.get_average_membership_sale(),
+             'Outcome % Scheduled work': 0, # TODO: Get clarification
+             'agent': agent.username
+             } for agent in agents]
     # print(dataset)
-    df = pd.DataFrame(dataset).set_index('username')
+    df = pd.DataFrame(dataset).set_index('agent')
     return df.append(df.sum().rename('Total'))
 
 

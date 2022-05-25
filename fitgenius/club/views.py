@@ -445,11 +445,12 @@ class ReportView(LoginRequiredMixin, PortalRestrictionMixin, TemplateView):
 
         usernames = request.POST.getlist('username')
         file_type = request.POST.get('file_type')
+        report_type = request.POST.get('report_type')
         club = request.user.club
         club_users = User.objects.filter(club=club, username__in=usernames)
         # print(club_users)
         if club_users.exists():
-            df = generate_report(club_users)
+            df = generate_report(club_users, report_type=report_type)
             response = export_file(df, file_type)
             return response
 
