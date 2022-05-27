@@ -1,34 +1,35 @@
-{% extends "base.html" %}
-{% load static %}
+<div class="modal-content">
+  <div class="modal-header">
+    <h5 class="modal-title" id="myModalLabel"></h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+  <div class="modal-body">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title mb-4">Personal Information</h4>
 
-{% block title %}User: {{ object.username }}{% endblock %}
 
-{% block content %}
-<div class="container">
+        <div class="table-responsive">
+          <table class="table table-nowrap mb-0">
+            <tbody>
+            <tr>
+              <th scope="row">username :</th>
+              <td>{{ user.username }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Full Name :</th>
+              <td>{{ user.get_full_name }}</td>
+            </tr>
 
-  <div class="row">
-    <div class="col-sm-12">
+            <tr>
+              <th scope="row">Email :</th>
+              <td>{{ user.email }}</td>
+            </tr>
 
-      <h2>{{ object.username }}</h2>
-      {% if object.name %}
-        <p>{{ object.name }}</p>
-      {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
-
-{% if object == request.user %}
-<!-- Action buttons -->
-<div class="row">
-
-  <div class="col-sm-12">
-    <a class="btn btn-primary" href="{% url 'users:update' %}" role="button">My Info</a>
-    <a class="btn btn-primary" href="{% url 'account_email' %}" role="button">E-Mail</a>
-    <!-- Your Stuff: Custom user template urls -->
-  </div>
-
 </div>
-<!-- End Action buttons -->
-{% endif %}
-
-</div>
-{% endblock content %}

@@ -1,7 +1,39 @@
 {% extends 'partials/base.html' %}
-{% load static %}
+{% load static humanize user_extras %}
 
 {% block contents %}
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+          <tr>
+            <th>Current Day</th>
+            <th>Current Month</th>
+{#            <th>Efficiency</th>#}
+            <th>Finalized sales on referrals</th>
+{#            <th>Ref/sales Ratio</th>#}
+{#            <th>Calls per hour</th>#}
+            <th>% Total Finalized New Clients</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>{{ user.club.get_current_day_sales }}</td>
+            <td>{{ user.club.get_current_month_sales }}</td>
+{#            <td>{{ user.get_efficiency }}</td>#}
+            <td>{{ user.club.finalized_sales_on_ref }}</td>
+{#            <td>{{ user.ref_sales_ratio | floatformat:4 }}</td>#}
+{#            <td>{{ user.get_call_per_hour }}</td>#}
+            <td>
+              {% call_method user.club 'get_percentage_total_finalized' as percent_finalized %}{{ percent_finalized | floatformat:2 }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <div class="row">
     <div class="col-xl-4">
       <div class="card overflow-hidden">

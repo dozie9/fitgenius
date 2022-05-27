@@ -15,7 +15,7 @@ from guardian.mixins import PermissionListMixin, PermissionRequiredMixin
 
 from .forms import ActionForm, OfferForm, BudgetForm
 from .models import Action, Budget, Product, Offer, OfferedItem, WorkingHour
-from .utils import month_sale_vs_budget, generate_report, export_file
+from .utils import month_sale_vs_budget, generate_report, export_file, generate_actions_report
 from ..users.forms import UserSignupForm
 from ..utils.utils import PortalRestrictionMixin, AjaxTemplateMixin
 
@@ -447,10 +447,20 @@ class ReportView(LoginRequiredMixin, PortalRestrictionMixin, TemplateView):
         file_type = request.POST.get('file_type')
         report_type = request.POST.get('report_type')
         club = request.user.club
+        user_actions = request.POST.get('user_actions')
         club_users = User.objects.filter(club=club, username__in=usernames)
         # print(club_users)
         if club_users.exists():
             df = generate_report(club_users, report_type=report_type)
+            response = export_file(df, file_type)
+            return response
+
+        if user_actions:
+            if user_actions != 'global':
+                actions = Action.objects.filter(club=club, agent__uuid=user_actions)
+            else:
+                actions = Action.objects.filter(club=club)
+            df = generate_actions_report(actions, user_actions)
             response = export_file(df, file_type)
             return response
 

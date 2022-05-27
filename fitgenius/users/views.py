@@ -17,8 +17,11 @@ User = get_user_model()
 class UserDetailView(LoginRequiredMixin, DetailView):
 
     model = User
-    slug_field = "username"
-    slug_url_kwarg = "username"
+    # slug_field = "username"
+    # slug_url_kwarg = "username"
+
+    def get_object(self, queryset=None):
+        return self.request.user
 
 
 user_detail_view = UserDetailView.as_view()

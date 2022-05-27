@@ -6,27 +6,88 @@
     <div class="col-lg-12">
       <div class="card">
         <div class="card-body">
+          <div class="row">
 
 
-          <form action="." method="post">
-            <select name="file_type">
-              <option value="excel">Excel</option>
-              <option value="csv">CSV</option>
-            </select>
+            <form class="col-xl-6" action="." method="post">
+              <h4>Sales</h4>
+              <div class="mb-3">
+                <label for="file_type" class="form-label">File Format</label>
+                <select id="file_type" name="file_type" class="form-select">
+                  <option value="excel">Excel</option>
+                  <option value="csv">CSV</option>
+                </select>
+              </div>
+              {% csrf_token %}
+
+              <h5 class="mt-4">Global or New Client</h5>
+
+              <div class="mb-3">
+                <div class="form-check">
+                  <input type="radio" checked id="global" class="form-check-input" name="report_type" value="global">
+                  <label for="global" class="form-check-label">Global</label>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <div class="form-check">
+                  <input type="radio" id="new_client" class="form-check-input" name="report_type" value="new_client">
+                  <label for="new_client" class="form-check-label">New Client</label>
+                </div>
+
+              </div>
+
+              <h5 class="mt-4">Select User</h5>
+
+              <div class="mb-3">
+                <div class="form-check">
+                  <input type="checkbox" class="form-check-input" id="all">
+                  <label class="form-check-label" for="all">Global</label>
+                </div>
+              </div>
+
+              {% for agent in club_users %}
+                <div class="mb-3">
+                  <div class="form-check">
+                    <input class="users-checkbox form-check-input" id="usr-{{ agent.id }}" type="checkbox"
+                           name="username"
+                           value="{{ agent.username }}">
+                    <label class="form-check-label" for="usr-{{ agent.id }}">{{ agent.username }}</label>
+                  </div>
+                </div>
+              {% endfor %}
+              <div>
+                <button class="btn btn-primary w-md">Download</button>
+              </div>
+
+            </form>
+            <form class="col-xl-6" action="." method="post">
             {% csrf_token %}
-            <div>
-              <input type="radio" checked id="global" name="report_type" value="global">
-              <label for="global">Global</label><br>
-              <input type="radio" id="new_client" name="report_type" value="new_client">
-              <label for="new_client">New Client</label><br>
-            </div>
-            <p><input type="checkbox" id="all"> Global</p>
-            {% for agent in club_users %}
-              <p><input class="users-checkbox" type="checkbox" name="username"
-                        value="{{ agent.username }}"> {{ agent.username }} </p>
-            {% endfor %}
-            <button>Download</button>
-          </form>
+              <h4>Actions & Calls</h4>
+
+              <div class="mb-3">
+                <label for="file_type2" class="form-label">File Format</label>
+                <select id="file_type2" name="file_type" class="form-select">
+                  <option value="excel">Excel</option>
+                  <option value="csv">CSV</option>
+                </select>
+              </div>
+
+              <input type="radio" id="act_" name="user_actions" value="global">
+              <label for="act_">Global</label><br>
+              {% for agent in club_users %}
+                <div class="mb-3">
+                  <div class="form-check">
+                    <input type="radio" id="act_{{ agent.id }}" class="form-check-input" name="user_actions" value="{{ agent.uuid }}">
+                    <label class="form-check-label" for="act_{{ agent.id }}">{{ agent.get_full_name_or_username }}</label><br>
+                  </div>
+                </div>
+              {% endfor %}
+              <div>
+                <button class="btn btn-primary w-md">Download</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

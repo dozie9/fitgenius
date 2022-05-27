@@ -1,3 +1,5 @@
+import itertools
+
 import pandas as pd
 
 from django.core.serializers import serialize
@@ -114,7 +116,7 @@ def generate_report(agents, report_type=None):
              'Average Month': agent.get_average_month(client_type=Offer.NEW_CLIENT),
              'Average Membership Sale': agent.get_average_membership_sale(client_type=Offer.NEW_CLIENT),
              'Outcome % Scheduled work': 0,  # TODO: Get clarification
-             'agent': agent.username
+             'agent': agent.get_full_name_or_username()
              } for agent in agents]
     else:
         """global"""
@@ -145,7 +147,7 @@ def generate_report(agents, report_type=None):
              'Average Month': agent.get_average_month(),
              'Average Membership Sale': agent.get_average_membership_sale(),
              'Outcome % Scheduled work': 0, # TODO: Get clarification
-             'agent': agent.username
+             'agent': agent.get_full_name_or_username()
              } for agent in agents]
     # print(dataset)
     df = pd.DataFrame(dataset).set_index('agent')
@@ -164,6 +166,29 @@ def export_file(data_frame, file_type):
         data_frame.to_excel(response, engine="xlsxwriter")
         return response
 
+
+def generate_actions_report(qs, user_actions):
+    # df = pd.DataFrame.from_records(qs.values_list())
+    # df.columns = [col for col in qs[0].__dict__.keys()][1:]
+
+    # create empty dataframe with category and actions as columns and index
+    columns = [x[0] for x in Action.CATEGORY_CHOICES]
+    my_index = [x[0] for x in Action.ACTION_CHOICES]
+
+    actions_df = pd.DataFrame(columns=columns, index=my_index)
+    if not qs.exists():
+        return actions_df
+
+    for category, action in itertools.product(columns, my_index):
+        actions_qs = qs.filter(action=action, category=category)
+        total_amount = actions_qs.aggregate(total=Sum('amount'))['total']
+        if total_amount is not None:
+            actions_df.at[action, category] = total_amount
+    if user_actions == 'global':
+        actions_df.index.name = 'Total'
+    else:
+        actions_df.index.name = qs[0].agent.get_full_name_or_username()
+    return actions_df
 # def agent_sales(agent_uuid):
 #     offered_items_qs = OfferedItem.objects.filter(offer=OuterRef('pk')).annotate(
 #         total_price=F('product__value') * F('quantity')

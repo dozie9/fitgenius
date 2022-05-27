@@ -32,6 +32,11 @@ class User(AbstractUser):
     club = ForeignKey('club.Club', on_delete=CASCADE, null=True)
     uuid = UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
+    def get_full_name_or_username(self) -> str:
+        if self.get_full_name():
+            return self.get_full_name()
+        return self.username
+
     def get_absolute_url(self):
         """Get url for user's detail view.
 
@@ -62,6 +67,16 @@ class User(AbstractUser):
 
         return sales['sales']
 
+    def get_current_month_sales(self):
+        today = timezone.now().date()
+        offer_qs = self.offer_set.agent_sales(agent_uuid=self.uuid).filter(
+            date__year=today.year, date__month=today.month)
+
+        # offer_dict = OfferSerializer(offer_qs, many=True)
+
+        sales = offer_qs.aggregate(sales=Sum('total_sales'))
+        return 0 if sales['sales'] is None else sales['sales']
+
     def get_efficiency(self):
         # from fitgenius.club.models import Action
         # actions = Action.objects.filter(agent=self)
@@ -88,13 +103,14 @@ class User(AbstractUser):
         offer_qs = self.offer_set.agent_sales(agent_uuid=self.uuid)
         if not client_type:
 
-            sales = offer_qs.aggregate(sales=Sum('total_sales'))
-            return sales['sales']
-        return offer_qs.filter(client_type=client_type).aggregate(sales=Sum('total_sales'))['sales']
+            sales = offer_qs.aggregate(sales=Sum('total_sales'))['sales']
+            return 0 if sales is None else sales
+        sales = offer_qs.filter(client_type=client_type).aggregate(sales=Sum('total_sales'))['sales']
+        return 0 if sales is None else sales
 
     def get_percent_sales_on_global(self, client_type):
         # from fitgenius.club.models import Offer
-        global_sales = 0 if self.get_sales() is None else self.get_sales()
+        global_sales = self.get_sales()
         client_type_sales = 0 if self.get_sales(client_type) is None else self.get_sales(client_type)
 
         try:
@@ -169,11 +185,14 @@ class User(AbstractUser):
             return 0
 
     def finalized_sales_on_ref(self):
-        from fitgenius.club.models import Offer
-        offer_qs = self.offer_set.agent_sales(agent_uuid=self.uuid).filter(client_type=Offer.REFERRAL)
+        # from fitgenius.club.models import Offer
+        # offer_qs = self.offer_set.agent_sales(agent_uuid=self.uuid).filter(client_type=Offer.REFERRAL)
+        #
+        # sales = offer_qs.aggregate(sales=Sum('total_sales'))
+        from fitgenius.club.models import OfferedItem, Offer
 
-        sales = offer_qs.aggregate(sales=Sum('total_sales'))
-        return sales['sales']
+        offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(offer__category=Offer.REFERRAL, offer__accepted=True)
+        return offered_items.count()
 
     def get_number_of_category(self, client_type):
         from fitgenius.club.models import Offer

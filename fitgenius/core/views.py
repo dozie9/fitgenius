@@ -42,7 +42,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         product_aggr = product_totals(agent_uuid)
         product_by_month = product_sale_by_month(agent_uuid)
-        print(product_aggr, json.dumps(product_aggr, cls=DecimalEncoder))
+        # print(product_aggr, json.dumps(product_aggr, cls=DecimalEncoder))
 
         sales_aggr = {
             'no_of_products': sales.aggregate(total_product=Sum('no_product'))['total_product'],
@@ -54,6 +54,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'this_month_sales': this_month_sales
 
         }
+
+        if self.request.user.user_type == User.MANAGER:
+            pass
+
         context.update({
             'sales_aggr': sales_aggr,
             'sales': sales

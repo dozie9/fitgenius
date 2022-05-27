@@ -16,5 +16,6 @@ urlpatterns = [
     path('<uuid:uuid>/update/', UpdateUserView.as_view(), name="update-user"),
     path('<uuid:uuid>/delete/', DeleteUserView.as_view(), name="delete-user"),
     path('', ListUserView.as_view(), name="list-user"),
-    path("<str:username>/", view=user_detail_view, name="detail"),
+    # path("<str:username>/", view=user_detail_view, name="detail"),
+    path("profile/", view=user_detail_view, name="detail"),
 ]

@@ -1,5 +1,6 @@
 import uuid
 import datetime
+import decimal
 
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -21,6 +22,105 @@ class Club(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_time_worked(self):
+        # from fitgenius.club.models import WorkingHour
+        users = self.user_set.all()
+        time_worked = sum([user.get_time_worked() for user in users])
+
+        if time_worked is None:
+            return 0
+        return time_worked
+
+    def get_current_day_sales(self):
+        users = self.user_set.all()
+        sales = sum([user.get_current_day_sales() for user in users])
+
+        return sales
+
+    def get_current_month_sales(self):
+        users = self.user_set.all()
+        sales = sum([user.get_current_month_sales() for user in users])
+
+        return sales
+
+    def get_referrals(self, client_type=None):
+        users = self.user_set.all()
+        try:
+            referrals = sum([user.get_referrals() for user in users])
+            return referrals
+        except TypeError:
+            return 0
+
+    def get_sales(self, client_type=None):
+        users = self.user_set.all()
+
+        if not client_type:
+            return sum([user.get_sales() for user in users])
+
+        return sum([user.get_sales(client_type=client_type) for user in users])
+
+    def finalized_sales_on_ref(self):
+        # from fitgenius.club.models import Offer
+        offer_qs = self.offer_set.agent_sales(agent_uuid=self.uuid).filter(client_type=Offer.REFERRAL)
+
+        sales = offer_qs.aggregate(sales=Sum('total_sales'))
+        return sales['sales']
+
+    def ref_sales_ratio(self, client_type=None):
+        # TODO: Get clarification
+        try:
+            if client_type:
+                return self.get_referrals(client_type=client_type)/self.get_sales(client_type=client_type)
+            return self.get_referrals()/self.get_sales()
+        except decimal.InvalidOperation:
+            return 0
+
+    def get_call_per_hour(self):
+        # from fitgenius.club.models import Action
+        no_calls = self.action_set.filter(action=Action.CALLS).count()
+        if no_calls == 0:
+            return 0
+        return self.get_time_worked()/no_calls
+
+    def get_number_of_sales(self, product_name='all', client_type=None, category=None):
+        users = self.user_set.all()
+
+        return sum([user.get_number_of_sales(product_name=product_name, client_type=client_type, category=category) for user in users])
+
+    def get_number_prospect_sales(self):
+        # from fitgenius.club.models import Offer
+        return self.get_number_of_sales(client_type=Offer.NEW_CLIENT, category=Offer.PROSPECT)
+
+    def get_number_comeback_sales(self):
+        # from fitgenius.club.models import Offer
+        return self.get_number_of_sales(client_type=Offer.NEW_CLIENT, category=Offer.COMEBACK)
+
+    def get_number_prospect_finalized_sales(self):
+        users = self.user_set.all()
+        return sum([user.get_number_prospect_finalized_sales() for user in users])
+
+    def get_number_prospect_nonfinalized_sales(self):
+        users = self.user_set.all()
+        return sum([user.get_number_prospect_nonfinalized_sales() for user in users])
+
+    def get_percentage_prospect_finalized(self):
+        try:
+            return (self.get_number_prospect_finalized_sales() / self.get_number_prospect_sales()) * 100
+        except ZeroDivisionError:
+            return 0
+
+    def get_number_comeback_finalized_sales(self):
+        users = self.user_set.all()
+        return sum([user.get_number_comeback_finalized_sales() for user in users])
+
+    def get_percentage_total_finalized(self):
+        """filtered by new client"""
+        try:
+            return (self.get_number_prospect_finalized_sales() + self.get_number_comeback_finalized_sales()) * 100 / (
+                self.get_number_prospect_sales() + self.get_number_comeback_sales())
+        except ZeroDivisionError:
+            return 0
 
 
 class Product(models.Model):
