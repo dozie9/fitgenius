@@ -9,7 +9,7 @@
           <div class="row">
 
 
-            <form class="col-xl-6" action="." method="post">
+            <form class="col-xl-6 mb-5" action="." method="post">
               <h4>Sales</h4>
               <div class="mb-3">
                 <label for="file_type" class="form-label">File Format</label>
@@ -37,12 +37,12 @@
 
               </div>
 
-              <h5 class="mt-4">Select User</h5>
+              <h5 class="mt-4">Select User(s)</h5>
 
               <div class="mb-3">
                 <div class="form-check">
                   <input type="checkbox" class="form-check-input" id="all">
-                  <label class="form-check-label" for="all">Global</label>
+                  <label class="form-check-label" for="all">Select all</label>
                 </div>
               </div>
 
@@ -57,7 +57,7 @@
                 </div>
               {% endfor %}
               <div>
-                <button class="btn btn-primary w-md">Download</button>
+                <button class="btn btn-primary w-md">Get report</button>
               </div>
 
             </form>
@@ -72,9 +72,14 @@
                   <option value="csv">CSV</option>
                 </select>
               </div>
+            <h5 class="mt-4">Select User</h5>
 
-              <input type="radio" id="act_" name="user_actions" value="global">
-              <label for="act_">Global</label><br>
+              <div class="mb-3">
+                <div class="form-check">
+                  <input type="radio" class="form-check-input" id="act_" name="user_actions" value="global">
+                  <label for="act_" class="form-check-label">Global</label>
+                </div>
+              </div>
               {% for agent in club_users %}
                 <div class="mb-3">
                   <div class="form-check">
@@ -84,7 +89,7 @@
                 </div>
               {% endfor %}
               <div>
-                <button class="btn btn-primary w-md">Download</button>
+                <button class="btn btn-primary w-md">Get report</button>
               </div>
             </form>
           </div>

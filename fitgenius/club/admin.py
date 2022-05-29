@@ -16,7 +16,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Budget)
 class BudjectAdmin(admin.ModelAdmin):
-    list_display = ['club', 'agent', 'month']
+    list_display = ['club', 'agent', 'amount', 'month']
 
 
 @admin.register(OfferedItem)
