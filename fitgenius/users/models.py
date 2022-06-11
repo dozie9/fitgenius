@@ -269,3 +269,12 @@ class User(AbstractUser):
     def get_percentage_scheduled_work(self):
         return 0
 
+    def get_buget_for_range(self, start_date, end_date=None):
+        from fitgenius.club.models import Budget
+
+        if end_date is None:
+            end_date = start_date
+
+        budget_qs = Budget.objects.filter(club=self.club, agent=self, month__range=[start_date, end_date])
+        return budget_qs.aggregate(total=Sum('amount'))['total']
+

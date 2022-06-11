@@ -1,6 +1,10 @@
 {% extends 'partials/base.html' %}
 {% load static humanize user_extras %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/datepicker.min.css' %}"/>
+{% endblock %}
+
 {% block contents %}
   <div class="card">
     <div class="card-body">
@@ -10,10 +14,10 @@
           <tr>
             <th>Current Day</th>
             <th>Current Month</th>
-{#            <th>Efficiency</th>#}
+            {#            <th>Efficiency</th>#}
             <th>Finalized sales on referrals</th>
-{#            <th>Ref/sales Ratio</th>#}
-{#            <th>Calls per hour</th>#}
+            {#            <th>Ref/sales Ratio</th>#}
+            {#            <th>Calls per hour</th>#}
             <th>% Total Finalized New Clients</th>
           </tr>
           </thead>
@@ -21,10 +25,10 @@
           <tr>
             <td>{{ user.club.get_current_day_sales }}</td>
             <td>{{ user.club.get_current_month_sales }}</td>
-{#            <td>{{ user.get_efficiency }}</td>#}
+            {#            <td>{{ user.get_efficiency }}</td>#}
             <td>{{ user.club.finalized_sales_on_ref }}</td>
-{#            <td>{{ user.ref_sales_ratio | floatformat:4 }}</td>#}
-{#            <td>{{ user.get_call_per_hour }}</td>#}
+            {#            <td>{{ user.ref_sales_ratio | floatformat:4 }}</td>#}
+            {#            <td>{{ user.get_call_per_hour }}</td>#}
             <td>
               {% call_method user.club 'get_percentage_total_finalized' as percent_finalized %}{{ percent_finalized | floatformat:2 }}</td>
           </tr>
@@ -57,7 +61,7 @@
                 <img src="{% static 'images/users/avatar-1.jpg' %}" alt="" class="img-thumbnail rounded-circle">
               </div>
               <h5 class="font-size-15 text-truncate">{{ user.get_full_name }}</h5>
-{#              <p class="text-muted mb-0 text-truncate">UI/UX Designer</p>#}
+              {#              <p class="text-muted mb-0 text-truncate">UI/UX Designer</p>#}
             </div>
 
             <div class="col-sm-8">
@@ -69,7 +73,7 @@
                     <p class="text-muted mb-0">Projects</p>
                   </div>
                   <div class="col-6">
-                    <h5 class="font-size-15">$1245</h5>
+                    <h5 class="font-size-15">€1245</h5>
                     <p class="text-muted mb-0">Revenue</p>
                   </div>
                 </div>
@@ -88,7 +92,7 @@
           <div class="row">
             <div class="col-sm-6">
               <p class="text-muted">This month</p>
-              <h3>$34,252</h3>
+              <h3>€34,252</h3>
               <p class="text-muted"><span class="text-success me-2"> 12% <i class="mdi mdi-arrow-up"></i> </span> From
                 previous period</p>
 
@@ -135,7 +139,7 @@
               <div class="d-flex">
                 <div class="flex-grow-1">
                   <p class="text-muted fw-medium">Revenue</p>
-                  <h4 class="mb-0">$35, 723</h4>
+                  <h4 class="mb-0">€35, 723</h4>
                 </div>
 
                 <div class="flex-shrink-0 align-self-center ">
@@ -155,7 +159,7 @@
               <div class="d-flex">
                 <div class="flex-grow-1">
                   <p class="text-muted fw-medium">Average Price</p>
-                  <h4 class="mb-0">$16.2</h4>
+                  <h4 class="mb-0">€16.2</h4>
                 </div>
 
                 <div class="flex-shrink-0 align-self-center">
@@ -175,7 +179,8 @@
       <div class="card">
         <div class="card-body">
           <div class="d-sm-flex flex-wrap">
-            <h4 class="card-title mb-4">Email Sent</h4>
+            <h4 class="card-title mb-4">Budget Progress</h4>
+            {% comment %}
             <div class="ms-auto">
               <ul class="nav nav-pills">
                 <li class="nav-item">
@@ -189,9 +194,20 @@
                 </li>
               </ul>
             </div>
+            {% endcomment %}
+
+
           </div>
 
-          <div id="stacked-column-chart" class="apex-charts" dir="ltr"></div>
+          <div class="mb-4">
+              <label>Date Range</label> <button class="btn btn-primary float-end mb-2">Get Progress</button>
+
+              <div class="input-daterange input-group" id="datepicker6" data-date-format="dd M, yyyy"
+                   data-date-autoclose="true" data-provide="datepicker" data-date-container='#datepicker6'>
+                <input type="text" class="form-control picker" id="start-date" name="start" placeholder="Start Date"/>
+                <input type="text" class="form-control picker" id="end-date" name="end" placeholder="End Date"/>
+              </div>
+            </div>
         </div>
       </div>
     </div>
@@ -199,5 +215,28 @@
 {% endblock %}
 
 {% block extra_javascript %}
+  <script src="{% static 'js/datepicker.min.js' %}"></script>
+  <script>
+  //let startDateDom = document.getElementById('start-date')
+  //let endDateDom = document.getElementById('end-date')
 
+
+    $(function() {
+      var $startDate = $('#start-date');
+      var $endDate = $('#end-date');
+
+      $startDate.datepicker({
+        autoHide: true,
+      });
+      $endDate.datepicker({
+        autoHide: true,
+        startDate: $startDate.datepicker('getDate'),
+      });
+
+      $startDate.on('change', function () {
+        $endDate.datepicker('setStartDate', $startDate.datepicker('getDate'));
+      });
+    });
+
+  </script>
 {% endblock %}
