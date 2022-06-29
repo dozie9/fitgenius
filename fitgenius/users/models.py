@@ -1,3 +1,4 @@
+import datetime
 import uuid
 import decimal
 
@@ -92,7 +93,7 @@ class User(AbstractUser):
         no_calls = self.action_set.filter(action=Action.CALLS).count()
         if no_calls == 0:
             return 0
-        return self.get_time_worked()/no_calls
+        return self.get_time_worked() / no_calls
 
     def get_referrals(self, client_type=None):
         if client_type:
@@ -102,7 +103,6 @@ class User(AbstractUser):
     def get_sales(self, client_type=None):
         offer_qs = self.offer_set.agent_sales(agent_uuid=self.uuid)
         if not client_type:
-
             sales = offer_qs.aggregate(sales=Sum('total_sales'))['sales']
             return 0 if sales is None else sales
         sales = offer_qs.filter(client_type=client_type).aggregate(sales=Sum('total_sales'))['sales']
@@ -179,8 +179,8 @@ class User(AbstractUser):
         # TODO: Get clarification
         try:
             if client_type:
-                return self.get_referrals(client_type=client_type)/self.get_sales(client_type=client_type)
-            return self.get_referrals()/self.get_sales()
+                return self.get_referrals(client_type=client_type) / self.get_sales(client_type=client_type)
+            return self.get_referrals() / self.get_sales()
         except decimal.InvalidOperation:
             return 0
 
@@ -191,7 +191,8 @@ class User(AbstractUser):
         # sales = offer_qs.aggregate(sales=Sum('total_sales'))
         from fitgenius.club.models import OfferedItem, Offer
 
-        offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(offer__category=Offer.REFERRAL, offer__accepted=True)
+        offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(offer__category=Offer.REFERRAL,
+                                                                                  offer__accepted=True)
         return offered_items.count()
 
     def get_number_of_category(self, client_type):
@@ -243,7 +244,8 @@ class User(AbstractUser):
         """Total Months"""
         from fitgenius.club.models import OfferedItem, Offer
         if client_type:
-            total = OfferedItem.objects.agent_offered_items(self.uuid).filter(offer__client_type=client_type).aggregate(sum=Sum('number_of_months'))['sum']
+            total = OfferedItem.objects.agent_offered_items(self.uuid).filter(offer__client_type=client_type).aggregate(
+                sum=Sum('number_of_months'))['sum']
         else:
             total = OfferedItem.objects.agent_offered_items(self.uuid).aggregate(sum=Sum('number_of_months'))['sum']
         if total is None:
@@ -253,15 +255,18 @@ class User(AbstractUser):
     def get_average_month(self, client_type=None):
         try:
             if client_type:
-                return self.get_sales_for_product('Membership', client_type=client_type) / self.get_all_total_sub_months(client_type=client_type)
-            return self.get_sales_for_product('Membership')/self.get_all_total_sub_months()
+                return self.get_sales_for_product('Membership',
+                                                  client_type=client_type) / self.get_all_total_sub_months(
+                    client_type=client_type)
+            return self.get_sales_for_product('Membership') / self.get_all_total_sub_months()
         except ZeroDivisionError:
             return 0
 
     def get_average_membership_sale(self, client_type=None):
         try:
             if client_type:
-                return self.get_sales_for_product('Membership', client_type=client_type) / self.get_number_of_sales('Membership', client_type=client_type)
+                return self.get_sales_for_product('Membership', client_type=client_type) / self.get_number_of_sales(
+                    'Membership', client_type=client_type)
             return self.get_sales_for_product('Membership') / self.get_number_of_sales('Membership')
         except ZeroDivisionError:
             return 0
@@ -269,12 +274,96 @@ class User(AbstractUser):
     def get_percentage_scheduled_work(self):
         return 0
 
-    def get_buget_for_range(self, start_date, end_date=None):
+    def get_month_budget(self, month):
+        month_ = month.month
+        year = month.year
+        budget_qs = self.budget_set.filter(club=self.club, month__year=year, month__month=month_)
+        if budget_qs.exists():
+            budget = budget_qs.first()
+            return budget
+        else:
+            return 0
+
+    def get_days_budget(self, date):
+        month_budget = self.get_month_budget(date)
+        if month_budget:
+            return month_budget.amount / month_budget.working_days
+        return 0
+
+    def get_budget_for_range(self, start_date, end_date=None):
         from fitgenius.club.models import Budget
 
         if end_date is None:
-            end_date = start_date
+            end_date = start_date + datetime.timedelta(days=1)
 
-        budget_qs = Budget.objects.filter(club=self.club, agent=self, month__range=[start_date, end_date])
-        return budget_qs.aggregate(total=Sum('amount'))['total']
+        budget_qs = Budget.objects.filter(
+            club=self.club, agent=self,
+            month__gte=start_date,
 
+            month__lte=end_date,
+        )
+        print(budget_qs)
+        total = budget_qs.aggregate(total=Sum('amount'))['total']
+        if total is None:
+            return 0
+        return total
+
+    def get_workingdays_for_range(self, start_date, end_date=None):
+        from fitgenius.club.models import Budget
+
+        if end_date is None:
+            end_date = start_date + datetime.timedelta(days=1)
+
+        budget_qs = Budget.objects.filter(
+            club=self.club, agent=self,
+            month__year__gte=start_date.year,
+            month__year__lte=end_date.year,
+            month__month__gte=start_date.month,
+            month__month__lte=end_date.month
+        )
+        total = budget_qs.aggregate(total=Sum('working_days'))['total']
+        if total is None:
+            return 0
+        return total
+
+    def get_days_worked(self, start_date, end_date=None):
+        # from fitgenius.club.models import Action
+        # Action.objects.filter(date__range=[start_date, end_date]).values('date').annotate(date_count=Count('date'))
+        if end_date is None:
+            end_date = start_date + datetime.timedelta(days=1)
+        user_actions = self.action_set.filter(date__range=[start_date, end_date]).values('date').annotate(
+            date_count=Count('date'))
+
+        return user_actions.count()
+
+    def get_budget_progress(self, start_date, end_date=None):
+
+        try:
+            budget_progress = (self.get_budget_for_range(start_date, end_date) / self.get_workingdays_for_range(
+                start_date,
+                end_date)
+                               ) * self.get_days_worked(start_date, end_date)
+            # print('progr', budget_progress)
+            return budget_progress
+        except ZeroDivisionError:
+            return 0
+
+    def get_current_sales(self, start_date, end_date=None):
+        offer_qs = self.offer_set.agent_sales(agent_uuid=self.uuid)
+        # print(offer_qs)
+        if end_date is None:
+            end_date = start_date + datetime.timedelta(days=1)
+
+        sales = offer_qs.filter(date__range=[start_date, end_date]).aggregate(sales=Sum('total_sales'))['sales']
+        return 0 if sales is None else sales
+
+    def get_trend(self, start_date, end_date=None):
+        if end_date is None:
+            end_date = start_date + datetime.timedelta(days=1)
+
+        try:
+            trend = ((self.get_current_sales(start_date, end_date) * 100) / self.get_budget_progress(start_date,
+                                                                                                     end_date)) - 100
+            return trend
+        except (ZeroDivisionError, decimal.InvalidOperation):
+            return 0

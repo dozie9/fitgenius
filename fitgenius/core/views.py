@@ -1,3 +1,4 @@
+import datetime
 import json
 from decimal import Decimal, DivisionByZero, DivisionUndefined, InvalidOperation
 
@@ -11,8 +12,9 @@ from django.views.generic import TemplateView, RedirectView
 
 from fitgenius.club.models import Offer
 # from fitgenius.club.utils import agent_sales
-from fitgenius.club.utils import (month_sale_vs_budget, product_totals, product_sale_by_month)
-from fitgenius.utils.utils import DecimalEncoder
+from fitgenius.club.utils import (month_sale_vs_budget, product_totals, product_sale_by_month, get_yesterday_progress,
+                                  get_month_progress, get_year_progress)
+from fitgenius.utils.utils import DecimalEncoder, months_ago, years_ago
 
 User = get_user_model()
 
@@ -44,6 +46,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         product_by_month = product_sale_by_month(agent_uuid)
         # print(product_aggr, json.dumps(product_aggr, cls=DecimalEncoder))
 
+        # yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+        a_month_ago = months_ago(1)
+        a_year_ago = years_ago(1)
+
         sales_aggr = {
             'no_of_products': sales.aggregate(total_product=Sum('no_product'))['total_product'],
             'avg_sales': sales.aggregate(avg_sales=Avg('total_sales'))['avg_sales'],
@@ -57,10 +63,16 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         if self.request.user.user_type == User.MANAGER:
             pass
+        # print(get_month_progress(self.request.user.club))
 
         context.update({
             'sales_aggr': sales_aggr,
-            'sales': sales
+            'sales': sales,
+            'progress': get_yesterday_progress(self.request.user.club),
+            'current_date': timezone.now().date(),
+            'a_year_ago': a_year_ago,
+            'month_progress': get_month_progress(self.request.user.club),
+            'year_progress': get_year_progress(self.request.user.club)
         })
         return context
 

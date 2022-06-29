@@ -122,6 +122,44 @@ class Club(models.Model):
         except ZeroDivisionError:
             return 0
 
+    def get_buget_for_range(self, start_date, end_date=None):
+        if end_date is None:
+            end_date = start_date + datetime.timedelta(days=1)
+        users = self.user_set.all()
+        return sum([agent.get_buget_for_range(start_date, end_date) for agent in users])
+
+    def get_workingdays_for_range(self, start_date, end_date=None):
+        if end_date is None:
+            end_date = start_date + datetime.timedelta(days=1)
+        users = self.user_set.all()
+        return sum([agent.get_workingdays_for_range(start_date, end_date) for agent in users])
+
+    def get_days_worked(self, start_date, end_date=None):
+        if end_date is None:
+            end_date = start_date + datetime.timedelta(days=1)
+        users = self.user_set.all()
+        return sum([agent.get_days_worked(start_date, end_date) for agent in users])
+
+    def get_budget_progress(self, start_date, end_date=None):
+        if end_date is None:
+            end_date = start_date + datetime.timedelta(days=1)
+        users = self.user_set.all()
+        return sum([agent.get_budget_progress(start_date, end_date) for agent in users])
+
+    def get_current_sales(self, start_date, end_date=None):
+        if end_date is None:
+            end_date = start_date + datetime.timedelta(days=1)
+        users = self.user_set.all()
+        return sum([agent.get_current_sales(start_date, end_date) for agent in users])
+
+    def get_trend(self, start_date, end_date=None):
+        if end_date is None:
+            end_date = start_date + datetime.timedelta(days=1)
+
+        trend = ((self.get_current_sales(start_date, end_date) * 100) / self.get_budget_progress(start_date,
+                                                                                                 end_date)) - 100
+        return trend
+
 
 class Product(models.Model):
     title = models.CharField(max_length=255)
@@ -150,8 +188,18 @@ class Budget(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
+    class Meta:
+        # ordering = ['-date']
+        unique_together = [
+            ['agent', 'month']
+        ]
+
     def __str__(self):
-        return self.agent.username
+        return f'{self.agent.username} | {self.month} | {self.amount}'
+
+    @property
+    def get_daily_budget(self):
+        return self.amount / self.working_days
 
 
 class OfferedItemManager(models.Manager):

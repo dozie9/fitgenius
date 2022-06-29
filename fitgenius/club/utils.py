@@ -1,3 +1,5 @@
+import calendar
+import datetime
 import itertools
 
 import pandas as pd
@@ -15,6 +17,9 @@ from fitgenius.utils.query_debugger import query_debugger
 
 
 # @query_debugger
+from fitgenius.utils.utils import years_ago
+
+
 def month_sale_vs_budget(agent_uuid, year, month):
 
     offer_qs = Offer.objects.agent_sales(agent_uuid=agent_uuid).filter(
@@ -189,6 +194,61 @@ def generate_actions_report(qs, user_actions):
     else:
         actions_df.index.name = qs[0].agent.get_full_name_or_username()
     return actions_df
+
+
+def get_yesterday_progress(club):
+    yesterday = timezone.now() - datetime.timedelta(days=1)
+    agents = club.user_set.all()
+
+    return [{
+        'agent': agent.get_full_name_or_username(),
+        'budget': agent.get_days_budget(yesterday),
+        'budget_progress': agent.get_budget_progress(start_date=yesterday),
+        'current_sales': agent.get_current_sales(start_date=yesterday),
+        'gap': agent.get_current_sales(start_date=yesterday) - agent.get_budget_progress(start_date=yesterday),
+        'trend': agent.get_trend(start_date=yesterday)
+    } for agent in agents]
+
+
+def get_month_progress(club):
+    current_day = timezone.now().date()
+    start_date = current_day.replace(day=1)
+
+    end_date = datetime.date(
+        current_day.year, current_day.month, calendar.monthrange(current_day.year, current_day.month)[-1]
+    )# + datetime.timedelta(days=1)
+    agents = club.user_set.all()
+
+    return [{
+        'agent': agent.get_full_name_or_username(),
+        'budget': agent.get_budget_for_range(start_date),
+        'budget_progress': agent.get_budget_progress(start_date=start_date, end_date=end_date),
+        'current_sales': agent.get_current_sales(start_date=start_date, end_date=end_date),
+        'gap': agent.get_current_sales(start_date=start_date, end_date=end_date) - agent.get_budget_progress(start_date=start_date, end_date=end_date),
+        'trend': agent.get_trend(start_date=start_date, end_date=end_date)
+    } for agent in agents]
+
+
+def get_year_progress(club):
+    current_day = timezone.now().date()
+    start_date = years_ago(1).date()
+
+    end_date = current_day
+    print(start_date, end_date)
+
+    agents = club.user_set.all()
+
+    return [{
+        'agent': agent.get_full_name_or_username(),
+        'budget': agent.get_budget_for_range(start_date, end_date=end_date),
+        'budget_progress': agent.get_budget_progress(start_date=start_date, end_date=end_date),
+        'current_sales': agent.get_current_sales(start_date=start_date, end_date=end_date),
+        'gap': agent.get_current_sales(start_date=start_date, end_date=end_date) - agent.get_budget_progress(
+            start_date=start_date, end_date=end_date),
+        'trend': agent.get_trend(start_date=start_date, end_date=end_date)
+    } for agent in agents]
+
+
 # def agent_sales(agent_uuid):
 #     offered_items_qs = OfferedItem.objects.filter(offer=OuterRef('pk')).annotate(
 #         total_price=F('product__value') * F('quantity')

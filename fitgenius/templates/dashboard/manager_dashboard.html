@@ -200,6 +200,8 @@
           </div>
 
           <div class="mb-4">
+            <h5>Yesterday</h5>
+            {% comment %}
               <label>Date Range</label> <button class="btn btn-primary float-end mb-2">Get Progress</button>
 
               <div class="input-daterange input-group" id="datepicker6" data-date-format="dd M, yyyy"
@@ -207,7 +209,88 @@
                 <input type="text" class="form-control picker" id="start-date" name="start" placeholder="Start Date"/>
                 <input type="text" class="form-control picker" id="end-date" name="end" placeholder="End Date"/>
               </div>
-            </div>
+            {% endcomment %}
+
+            <table>
+              <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Budget</th>
+                <th>Budget Progress</th>
+                <th>Current Sales</th>
+                <th>Gap</th>
+                <th>Trend</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for data in progress %}
+                <tr>
+                  <td>{{ data.agent }}</td>
+                  <td>{{ data.budget | floatformat:2 }}€</td>
+                  <td>{{ data.budget_progress | floatformat:2 }}€</td>
+                  <td>{{ data.current_sales | floatformat:2 }}€</td>
+                  <td>{{ data.gap | floatformat:2 }}€</td>
+                  <td>{{ data.trend | floatformat:2 }}%</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+
+            <h5>{{ current_date | date:"F" }}</h5>
+
+            <table>
+              <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Budget</th>
+                <th>Budget Progress</th>
+                <th>Current Sales</th>
+                <th>Gap</th>
+                <th>Trend</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for data in month_progress %}
+                <tr>
+                  <td>{{ data.agent }}</td>
+                  <td>{{ data.budget | floatformat:2 }}€</td>
+                  <td>{{ data.budget_progress | floatformat:2 }}€</td>
+                  <td>{{ data.current_sales | floatformat:2 }}€</td>
+                  <td>{{ data.gap | floatformat:2 }}€</td>
+                  <td>{{ data.trend | floatformat:2 }}%</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+
+
+          <h5>{{ current_date | date:"F, Y" }} | {{ a_year_ago.date | date:"F, Y" }}</h5>
+
+            <table>
+              <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Budget</th>
+                <th>Budget Progress</th>
+                <th>Current Sales</th>
+                <th>Gap</th>
+                <th>Trend</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for data in year_progress %}
+                <tr>
+                  <td>{{ data.agent }}</td>
+                  <td>{{ data.budget | floatformat:2 }}€</td>
+                  <td>{{ data.budget_progress | floatformat:2 }}€</td>
+                  <td>{{ data.current_sales | floatformat:2 }}€</td>
+                  <td>{{ data.gap | floatformat:2 }}€</td>
+                  <td>{{ data.trend | floatformat:2 }}%</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -217,11 +300,11 @@
 {% block extra_javascript %}
   <script src="{% static 'js/datepicker.min.js' %}"></script>
   <script>
-  //let startDateDom = document.getElementById('start-date')
-  //let endDateDom = document.getElementById('end-date')
+    //let startDateDom = document.getElementById('start-date')
+    //let endDateDom = document.getElementById('end-date')
 
 
-    $(function() {
+    $(function () {
       var $startDate = $('#start-date');
       var $endDate = $('#end-date');
 

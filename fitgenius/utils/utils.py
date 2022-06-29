@@ -2,8 +2,10 @@ import json
 from datetime import datetime, date
 from decimal import Decimal
 
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
+from django.utils import timezone
 from guardian.shortcuts import assign_perm, remove_perm
 
 User = get_user_model()
@@ -81,3 +83,15 @@ class DateTimeEncoder(json.JSONEncoder):
 
 class DecimalDateTimeEncoder(DecimalEncoder, DateTimeEncoder):
     pass
+
+
+def years_ago(years, from_date=None):
+    if from_date is None:
+        from_date = timezone.now()
+    return from_date - relativedelta(years=years)
+
+
+def months_ago(months, from_date=None):
+    if from_date is None:
+        from_date = timezone.now()
+    return from_date - relativedelta(months=months)
