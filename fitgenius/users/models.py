@@ -302,7 +302,7 @@ class User(AbstractUser):
 
             month__lte=end_date,
         )
-        print(budget_qs)
+        # print(budget_qs)
         total = budget_qs.aggregate(total=Sum('amount'))['total']
         if total is None:
             return 0

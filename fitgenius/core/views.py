@@ -13,7 +13,8 @@ from django.views.generic import TemplateView, RedirectView
 from fitgenius.club.models import Offer
 # from fitgenius.club.utils import agent_sales
 from fitgenius.club.utils import (month_sale_vs_budget, product_totals, product_sale_by_month, get_yesterday_progress,
-                                  get_month_progress, get_year_progress)
+                                  get_month_progress, get_year_progress, club_yesterday, club_month_progress,
+                                  club_year_progress)
 from fitgenius.utils.utils import DecimalEncoder, months_ago, years_ago
 
 User = get_user_model()
@@ -72,7 +73,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'current_date': timezone.now().date(),
             'a_year_ago': a_year_ago,
             'month_progress': get_month_progress(self.request.user.club),
-            'year_progress': get_year_progress(self.request.user.club)
+            'year_progress': get_year_progress(self.request.user.club),
+            'club_yesterday': club_yesterday(self.request.user.club),
+            'club_month_progress': club_month_progress(self.request.user.club),
+            'club_year_progress': club_year_progress(self.request.user.club)
         })
         return context
 

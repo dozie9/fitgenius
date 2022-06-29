@@ -200,7 +200,7 @@
           </div>
 
           <div class="mb-4">
-            <h5>Yesterday</h5>
+            <h5 class="mt-5">Yesterday</h5>
             {% comment %}
               <label>Date Range</label> <button class="btn btn-primary float-end mb-2">Get Progress</button>
 
@@ -210,9 +210,25 @@
                 <input type="text" class="form-control picker" id="end-date" name="end" placeholder="End Date"/>
               </div>
             {% endcomment %}
+            <table class="table align-middle table-nowrap">
+              <tr class="table-info">
+                <th>Budget</th>
+                <th>Budget Progress</th>
+                <th>Current Sales</th>
+                <th>Gap</th>
+                <th>Trend</th>
+              </tr>
+              <tr>
+                <th>{{ club_yesterday.budget | floatformat:2 }}</th>
+                <th>{{ club_yesterday.budget_progress | floatformat:2 }}</th>
+                <th>{{ club_yesterday.current_sales | floatformat:2 }}</th>
+                <th>{{ club_yesterday.gap | floatformat:2 }}</th>
+                <th>{{ club_yesterday.trend | floatformat:2 }}</th>
+              </tr>
+            </table>
 
-            <table>
-              <thead>
+            <table class="table align-middle table-nowrap">
+              <thead class="table-light">
               <tr>
                 <th>Agent</th>
                 <th>Budget</th>
@@ -236,10 +252,27 @@
               </tbody>
             </table>
 
-            <h5>{{ current_date | date:"F" }}</h5>
+            <h5 class="mt-5">{{ current_date | date:"F" }}</h5>
 
-            <table>
-              <thead>
+            <table class="table align-middle table-nowrap">
+              <tr class="table-info">
+                <th>Budget</th>
+                <th>Budget Progress</th>
+                <th>Current Sales</th>
+                <th>Gap</th>
+                <th>Trend</th>
+              </tr>
+              <tr>
+                <th>{{ club_month_progress.budget | floatformat:2 }}</th>
+                <th>{{ club_month_progress.budget_progress | floatformat:2 }}</th>
+                <th>{{ club_month_progress.current_sales | floatformat:2 }}</th>
+                <th>{{ club_month_progress.gap | floatformat:2 }}</th>
+                <th>{{ club_month_progress.trend | floatformat:2 }}</th>
+              </tr>
+            </table>
+
+            <table class="table align-middle table-nowrap">
+              <thead class="table-light">
               <tr>
                 <th>Agent</th>
                 <th>Budget</th>
@@ -264,10 +297,27 @@
             </table>
 
 
-          <h5>{{ current_date | date:"F, Y" }} | {{ a_year_ago.date | date:"F, Y" }}</h5>
+            <h5 class="mt-5">{{ current_date | date:"F, Y" }} | {{ a_year_ago.date | date:"F, Y" }}</h5>
 
-            <table>
-              <thead>
+            <table class="table align-middle table-nowrap">
+              <tr class="table-info">
+                <th>Budget</th>
+                <th>Budget Progress</th>
+                <th>Current Sales</th>
+                <th>Gap</th>
+                <th>Trend</th>
+              </tr>
+              <tr>
+                <th>{{ club_year_progress.budget | floatformat:2 }}</th>
+                <th>{{ club_year_progress.budget_progress | floatformat:2 }}</th>
+                <th>{{ club_year_progress.current_sales | floatformat:2 }}</th>
+                <th>{{ club_year_progress.gap | floatformat:2 }}</th>
+                <th>{{ club_year_progress.trend | floatformat:2 }}</th>
+              </tr>
+            </table>
+
+            <table class="table align-middle table-nowrap">
+              <thead class="table-light">
               <tr>
                 <th>Agent</th>
                 <th>Budget</th>

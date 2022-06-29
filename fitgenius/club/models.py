@@ -122,11 +122,14 @@ class Club(models.Model):
         except ZeroDivisionError:
             return 0
 
-    def get_buget_for_range(self, start_date, end_date=None):
+    def get_days_budget(self, date):
+        return sum([agent.get_days_budget(date) for agent in self.user_set.all()])
+
+    def get_budget_for_range(self, start_date, end_date=None):
         if end_date is None:
             end_date = start_date + datetime.timedelta(days=1)
         users = self.user_set.all()
-        return sum([agent.get_buget_for_range(start_date, end_date) for agent in users])
+        return sum([agent.get_budget_for_range(start_date, end_date) for agent in users])
 
     def get_workingdays_for_range(self, start_date, end_date=None):
         if end_date is None:
@@ -156,9 +159,12 @@ class Club(models.Model):
         if end_date is None:
             end_date = start_date + datetime.timedelta(days=1)
 
-        trend = ((self.get_current_sales(start_date, end_date) * 100) / self.get_budget_progress(start_date,
+        try:
+            trend = ((self.get_current_sales(start_date, end_date) * 100) / self.get_budget_progress(start_date,
                                                                                                  end_date)) - 100
-        return trend
+            return trend
+        except (ZeroDivisionError, decimal.InvalidOperation):
+            return 0
 
 
 class Product(models.Model):

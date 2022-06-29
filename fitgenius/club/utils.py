@@ -234,7 +234,7 @@ def get_year_progress(club):
     start_date = years_ago(1).date()
 
     end_date = current_day
-    print(start_date, end_date)
+    # print(start_date, end_date)
 
     agents = club.user_set.all()
 
@@ -247,6 +247,50 @@ def get_year_progress(club):
             start_date=start_date, end_date=end_date),
         'trend': agent.get_trend(start_date=start_date, end_date=end_date)
     } for agent in agents]
+
+
+def club_yesterday(club):
+    yesterday = timezone.now() - datetime.timedelta(days=1)
+    return {
+        'budget': club.get_days_budget(yesterday),
+        'budget_progress': club.get_budget_progress(start_date=yesterday),
+        'current_sales': club.get_current_sales(start_date=yesterday),
+        'gap': club.get_current_sales(start_date=yesterday) - club.get_budget_progress(start_date=yesterday),
+        'trend': club.get_trend(start_date=yesterday)
+    }
+
+
+def club_month_progress(club):
+    current_day = timezone.now().date()
+    start_date = current_day.replace(day=1)
+
+    end_date = datetime.date(
+        current_day.year, current_day.month, calendar.monthrange(current_day.year, current_day.month)[-1]
+    )
+
+    return {
+        'budget': club.get_budget_for_range(start_date),
+        'budget_progress': club.get_budget_progress(start_date=start_date, end_date=end_date),
+        'current_sales': club.get_current_sales(start_date=start_date, end_date=end_date),
+        'gap': club.get_current_sales(start_date=start_date, end_date=end_date) - club.get_budget_progress(start_date=start_date, end_date=end_date),
+        'trend': club.get_trend(start_date=start_date, end_date=end_date)
+    }
+
+
+def club_year_progress(club):
+    current_day = timezone.now().date()
+    start_date = years_ago(1).date()
+
+    end_date = current_day
+
+    return {
+        'budget': club.get_budget_for_range(start_date, end_date=end_date),
+        'budget_progress': club.get_budget_progress(start_date=start_date, end_date=end_date),
+        'current_sales': club.get_current_sales(start_date=start_date, end_date=end_date),
+        'gap': club.get_current_sales(start_date=start_date, end_date=end_date) - club.get_budget_progress(
+            start_date=start_date, end_date=end_date),
+        'trend': club.get_trend(start_date=start_date, end_date=end_date)
+    }
 
 
 # def agent_sales(agent_uuid):
