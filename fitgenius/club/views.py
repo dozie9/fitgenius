@@ -71,6 +71,24 @@ class ListActionView(LoginRequiredMixin, PermissionListMixin, BaseCreateView, Li
         return super().form_valid(form, *args, **kwargs)
 
 
+class ActionList(ListView):
+    model = Action
+    template_name = 'club/partials/action-list.html'
+    permission_required = ['club.access_action']
+    raise_exception = True
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        day = self.request.GET.get('d')
+        month = self.request.GET.get('m')
+        year = self.request.GET.get('y')
+        if not all([day, month, year]):
+            return queryset
+
+        return queryset.filter(agent=self.request.user).filter(date__day=day, date__month=month, date__year=year)
+
+
 class BudgetCreateView(LoginRequiredMixin, CreateView):
     model = Budget
     template_name = 'club/budget-form.html'
@@ -345,11 +363,17 @@ class OfferList(LoginRequiredMixin, PermissionListMixin, ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
 
-        client_type = self.request.GET.get('client_type', default=None)
-        if not client_type:
-            return queryset
+        client_type = self.request.GET.get('client_type')
 
-        return queryset.filter(client_type=client_type)
+        day = self.request.GET.get('d')
+        month = self.request.GET.get('m')
+        year = self.request.GET.get('y')
+        if all([day, month, year]):
+            queryset = queryset.filter(date__day=day, date__month=month, date__year=year)
+        if client_type:
+            queryset = queryset.filter(client_type=client_type)
+
+        return queryset
 
 
 class OfferListView(LoginRequiredMixin, PermissionListMixin, BaseCreateView, ListView):

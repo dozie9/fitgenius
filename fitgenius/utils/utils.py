@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
@@ -95,3 +95,8 @@ def months_ago(months, from_date=None):
     if from_date is None:
         from_date = timezone.now()
     return from_date - relativedelta(months=months)
+
+
+def days_of_the_week(day=timezone.now().date()):
+    dates = [day + timedelta(days=i) for i in range(0 - day.weekday(), 7 - day.weekday())]
+    return dates
