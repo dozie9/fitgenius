@@ -1,6 +1,18 @@
 {% extends 'partials/base.html' %}
 {% load static humanize user_extras %}
 
+{% block extra_css %}
+  <!-- DataTables -->
+  <link href="{% static 'libs/datatables.net-bs4/css/dataTables.bootstrap4.min.css' %}" rel="stylesheet"
+        type="text/css"/>
+  <link href="{% static 'libs/datatables.net-buttons-bs4/css/buttons.bootstrap4.min.css' %}" rel="stylesheet"
+        type="text/css"/>
+
+  <!-- Responsive datatable examples -->
+  <link href="{% static 'libs/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css' %}" rel="stylesheet"
+        type="text/css"/>
+{% endblock %}
+
 {% block contents %}
   <div class="card">
     <div class="card-body">
@@ -124,6 +136,133 @@
           <div id="stacked-column-chart" class="apex-charts" dir="ltr"></div>
         </div>
       </div>
+      <div class="card">
+        <div class="card-body">
+
+          <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" data-bs-toggle="tab" href="#action" role="tab">
+                <span class="d-block d-sm-none"><i class="fas fa-home"></i></span>
+                <span class="d-none d-sm-block">Action</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-bs-toggle="tab" href="#offer" role="tab">
+                <span class="d-block d-sm-none"><i class="far fa-user"></i></span>
+                <span class="d-none d-sm-block">Offer</span>
+              </a>
+            </li>
+
+          </ul>
+          <div class="tab-content p-3 text-muted">
+            <div class="d-sm-flex flex-wrap">
+              <h4 class="card-title mb-4">{{ current_date }}</h4>
+            </div>
+            <div class="tab-pane active" id="action" role="tabpanel">
+              {% comment %}
+              <div class="d-flex flex-wrap gap-2 mb-4">
+                {% for day in days_of_the_week %}
+                  <button
+                    type="button"
+                    hx-get="{% url 'club:partial-list-action' %}?dashboard=agent&m={{ day.month }}&d={{ day.day }}&y={{ day.year }}"
+                    class="btn btn-outline-primary waves-effect waves-light"
+                    hx-target="#action-table-body"
+                  >
+                    {{ day | date:"l, d" }}
+                  </button>
+
+                {% endfor %}
+
+              </div>
+            {% endcomment %}
+              <div class="btn-group mb-4" role="group" aria-label="Basic radio toggle button group">
+                {% for day in days_of_the_week %}
+                  <input type="radio" class="btn-check" name="action_btnradio" id="action-dateradio{{ forloop.counter }}"
+                         hx-get="{% url 'club:partial-list-action' %}?dashboard=agent&m={{ day.month }}&d={{ day.day }}&y={{ day.year }}"
+                         hx-target="#action-table-body"
+                         autocomplete="off"
+                         {% if day == current_date %}
+                         checked
+                         {% endif %}
+                  >
+                  <label class="btn btn-outline-secondary" for="action-dateradio{{ forloop.counter }}">{{ day | date:"l, d" }}</label>
+                {% endfor %}
+
+              </div>
+
+              <div class="table-responsive-md">
+                <table id="" class="table table-bordered dt-responsive  nowrap w-100 datatable">
+                  <thead>
+                  <tr>
+
+                    <th>Time spent</th>
+                    <th>category</th>
+                    <th>action</th>
+                    <th>Date</th>
+                    <th></th>
+
+                  </tr>
+                  </thead>
+
+
+                  <tbody id="action-table-body"
+                         hx-get="{% url 'club:partial-list-action' %}?dashboard=agent&m={{ current_date.month }}&d={{ current_date.day }}&y={{ current_date.year }}"
+                         hx-trigger="load, dataChanged from:body">
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="tab-pane" id="offer" role="tabpanel">
+              <div class="btn-group mb-4" role="group" aria-label="Basic radio toggle button group">
+                {% for day in days_of_the_week %}
+                  <input type="radio" class="btn-check" name="offer_btnradio" id="offer-dateradio{{ forloop.counter }}"
+                         hx-get="{% url 'club:partial-list-offer' %}?dashboard=agent&m={{ day.month }}&d={{ day.day }}&y={{ day.year }}"
+                         hx-target="#action-table-body"
+                         autocomplete="off"
+                         {% if day == current_date %}
+                         checked
+                         {% endif %}
+                  >
+                  <label class="btn btn-outline-secondary" for="offer-dateradio{{ forloop.counter }}">{{ day | date:"l, d" }}</label>
+
+                {% endfor %}
+
+              </div>
+              <div class="table-responsive">
+                <table id="" class="table table-bordered dt-responsive  nowrap w-100 datatable">
+                  <thead>
+                  <tr>
+                    <th>S/N</th>
+
+                    <th>Offered Product(s)</th>
+                    <th>Client type</th>
+                    <th>Meeting type</th>
+                    <th>Category</th>
+                    <th>Accepted</th>
+                    <th>Referrals</th>
+                    <th>Date</th>
+                    <th></th>
+
+                  </tr>
+                  </thead>
+
+
+                  <tbody id="offer-table-body"
+                         hx-get="{% url 'club:partial-list-offer' %}?dashboard=agent&m={{ current_date.month }}&d={{ current_date.day }}&y={{ current_date.year }}"
+                         hx-trigger="load, dataChanged from:body">
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+
+        </div>
+
+      </div>
 
     </div>
     <div class="col-xl-4">
@@ -164,7 +303,8 @@
                   </div>
                 </div>
                 <div class="mt-4">
-                  <a href="javascript: void(0);" hx-target="#dialog" hx-get="{% url 'users:detail' %}" class="btn btn-primary waves-effect waves-light btn-sm">View Profile <i
+                  <a href="javascript: void(0);" hx-target="#dialog" hx-get="{% url 'users:detail' %}"
+                     class="btn btn-primary waves-effect waves-light btn-sm">View Profile <i
                     class="mdi mdi-arrow-right ms-1"></i></a>
                 </div>
               </div>
@@ -186,6 +326,7 @@
           <div id="donut_chart" class="apex-charts"></div>
         </div>
       </div>
+
     </div>
   </div>
   <div id="modal" class="modal fade" tabindex="-1" aria-labelledby="offerAddModal"
@@ -198,6 +339,17 @@
 
 {% block extra_javascript %}
   <script src="{% static 'js/htmx.min.js' %}"></script>
+  <script src="{% static 'libs/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+
+  <!-- Buttons examples -->
+  <script src="{% static 'libs/datatables.net-buttons/js/dataTables.buttons.min.js' %}"></script>
+  <script src="{% static 'libs/datatables.net-buttons-bs4/js/buttons.bootstrap4.min.js' %}"></script>
+  <script src="{% static 'libs/jszip/dist/jszip.min.js' %}"></script>
+  <script src="{% static 'libs/pdfmake/build/pdfmake.min.js' %}"></script>
+  <script src="{% static 'libs/pdfmake/build/vfs_fonts.js' %}"></script>
+  <script src="{% static 'libs/datatables.net-buttons/js/buttons.html5.min.js' %}"></script>
+  <script src="{% static 'libs/datatables.net-buttons/js/buttons.print.min.js' %}"></script>
+  <script src="{% static 'libs/datatables.net-buttons/js/buttons.colVis.min.js' %}"></script>
   <!-- apexcharts -->
   <script src="{% static 'libs/apexcharts/dist/apexcharts.min.js' %}"></script>
   <!-- echarts js -->
