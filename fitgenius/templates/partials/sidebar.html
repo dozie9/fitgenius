@@ -86,83 +86,52 @@
           </li>
           {% endcomment %}
 
-          <li class="menu-title" key="t-apps">Apps</li>
-
-          {% if user.user_type == user.MANAGER %}
-        {% comment %}
-          <li>
-            <a href="{% url 'club:list-product' %}" class="waves-effect">
-              <i class="bx bx-calendar"></i>
-              <span key="t-dashboards">Product</span>
-            </a>
-
-          </li>{% endcomment %}
-
-          <li>
-            <a href="{% url 'club:list-budget' %}" class="waves-effect">
-              <i class="bx bx-file"></i>
-
-              <span key="t-file-manager">Budget</span>
-            </a>
-          </li>
-          {% endif %}
+          <li class="menu-title" key="t-apps">Offer</li>
 
           <li>
             <a href="{% url 'club:list-action' %}" class="waves-effect">
-              <i class="bx bx-store"></i>
-              <span key="t-ecommerce">Actions</span>
+              <i class="bx bxl-algolia"></i>
+              <span key="t-ecommerce">Actions & Calls</span>
             </a>
 
           </li>
 
-          <li>
-            <a href="javascript: void(0);" class="has-arrow waves-effect">
-              <i class="bx bx-bitcoin"></i>
-              <span key="t-crypto">Offer</span>
-            </a>
-          {% comment %}
-            <ul class="sub-menu" aria-expanded="false">
-              {% for an_offer in ClubOffer.CLIENT_TYPES %}
-                  <li>
-                    <a href="{% url 'club:list-offer' %}?client_type={{ an_offer.0 }}" key="t-horizontal">{{ an_offer.1 }}</a>
-                  </li>
-              {% endfor %}
-            </ul>
-            {% endcomment %}
-
-          </li>
           {% for an_offer in ClubOffer.CLIENT_TYPES %}
             <li>
-              <a href="{% url 'club:list-offer' %}?client_type={{ an_offer.0 }}" key="t-horizontal" class="waves-effect">
-                <i class="bx bx-news"></i>
+              <a href="{% url 'club:list-offer' %}?client_type={{ an_offer.0 }}" key="t-horizontal"
+                 class="waves-effect">
+                <i class="bx bxs-offer"></i>
                 <span>{{ an_offer.1 }}</span>
               </a>
             </li>
           {% endfor %}
-        {% if user.user_type == user.MANAGER %}
-        <li>
 
-            <a href="javascript: void(0);" class="has-arrow waves-effect">
-              <i class="bx bx-bitcoin"></i>
-              <span key="t-crypto">User</span>
-            </a>
-            <ul class="sub-menu" aria-expanded="false">
-                  <li>
-                    <a href="{% url 'users:list-user' %}" key="t-horizontal">Users</a>
-                  </li>
+          <li class="menu-title" key="t-apps">Management</li>
 
-            </ul>
+          {% if user.user_type == user.MANAGER %}
+            <li>
+              <a href="{% url 'club:list-budget' %}" class="waves-effect">
+                <i class="bx bx-money"></i>
 
+                <span key="t-file-manager">Budget</span>
+              </a>
+            </li>
 
-          </li>
-        <li>
-            <a href="{% url 'club:report' %}" class="waves-effect">
-              <i class="bx bx-file"></i>
+            <li>
+              <a href="{% url 'users:list-user' %}" class="waves-effect">
+                <i class="bx bx-user"></i>
 
-              <span key="t-file-manager">Report</span>
-            </a>
-          </li>
-        {% endif %}
+                <span key="t-file-manager">Users</span>
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'club:report' %}" class="waves-effect">
+                <i class="bx bx-file"></i>
+
+                <span key="t-file-manager">Report</span>
+              </a>
+            </li>
+          {% endif %}
 
           {% comment %}
 

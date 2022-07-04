@@ -254,7 +254,7 @@ class Offer(models.Model):
     LEAD = 'lead'
     REFERRAL = 'referral'
     GUEST = 'guest'
-    CROSS_UPGRADE = 'cross & upgrade'
+    CROSS_UPGRADE = 'cross upgrade'
 
     CLIENT_TYPES = (
         (NEW_CLIENT, NEW_CLIENT.title()),
@@ -263,7 +263,7 @@ class Offer(models.Model):
         (LEAD, LEAD.title()),
         (REFERRAL, REFERRAL.title()),
         (GUEST, GUEST.title()),
-        (CROSS_UPGRADE, CROSS_UPGRADE.title()),
+        (CROSS_UPGRADE, 'cross & upgrade'.title()),
     )
 
     SPONTANEOUS = 'spontaneous'
