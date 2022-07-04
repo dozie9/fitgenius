@@ -76,29 +76,33 @@
             default, so all you need to do to use it with your own tables is to call
             the construction function: <code>$().DataTable();</code>.
           </p>-->
+          <div class="table-responsive">
 
-          <table id="datatable" class="table table-bordered dt-responsive  nowrap w-100">
-            <thead>
-            <tr>
-              <th>S/N</th>
-              <th>Agent</th>
-              <th>Offered Product(s)</th>
-              <th>Client type</th>
-              <th>Meeting type</th>
-              <th>Category</th>
-              <th>Accepted</th>
-              <th>Referrals</th>
-              <th>Date</th>
-              <th></th>
+            <table id="datatable" class="table table-bordered dt-responsive  nowrap w-100 datatable">
+              <thead>
+              <tr>
+                <th>S/N</th>
+                <th>Agent</th>
+                <th>Offered Product(s)</th>
+                <th>Client type</th>
+                <th>Meeting type</th>
+                <th>Category</th>
+                <th>Accepted</th>
+                <th>Referrals</th>
+                <th>Date</th>
+                <th></th>
 
-            </tr>
-            </thead>
+              </tr>
+              </thead>
 
 
-            <tbody id="offer-table-body" hx-get="{% url 'club:partial-list-offer' %}?client_type={{ request.GET.client_type }}" hx-trigger="load, dataChanged from:body">
+              <tbody id="offer-table-body"
+                     hx-get="{% url 'club:partial-list-offer' %}?client_type={{ request.GET.client_type }}"
+                     hx-trigger="load, dataChanged from:body">
 
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
           <div id="modal" class="modal fade" tabindex="-1" aria-labelledby="offerAddModal"
                aria-hidden="true">
             <div id="dialog" hx-target="this" class="modal-dialog modal-dialog-scrollable">
@@ -190,9 +194,9 @@
   {#  <script src="{% static 'js/pages/datatables.init.js' %}"></script>#}
   <script>
 
-  function removeForm(id) {
-    document.getElementById(id).remove()
-  }
+    function removeForm(id) {
+      document.getElementById(id).remove()
+    }
 
     var formAjaxSubmit = function (form, modal) {
       $(form).submit(function (e) {

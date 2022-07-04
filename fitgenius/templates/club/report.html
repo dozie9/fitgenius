@@ -20,8 +20,8 @@
               </div>
               {% csrf_token %}
 
-              <h5 class="mt-4">Global or New Client</h5>
-
+              <h5 class="mt-4">Global or Client Type</h5>
+            {% comment %}
               <div class="mb-3">
                 <div class="form-check">
                   <input type="radio" checked id="global" class="form-check-input" name="report_type" value="global">
@@ -35,6 +35,16 @@
                   <label for="new_client" class="form-check-label">New Client</label>
                 </div>
 
+              </div>
+            {% endcomment %}
+              <div class="mb-3">
+                <label for="report_type" class="form-label">Client Type</label>
+                <select id="report_type" name="report_type" class="form-select">
+                  <option value="global">Global</option>
+                  {% for client_type in ClubOffer.CLIENT_TYPES %}
+                    <option value="{{ client_type.0 }}">{{ client_type.1 }}</option>
+                  {% endfor %}
+                </select>
               </div>
 
               <h5 class="mt-4">Select User(s)</h5>

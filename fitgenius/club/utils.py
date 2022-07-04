@@ -87,39 +87,39 @@ def product_sale_by_month(agent_uuid):
 
 
 def generate_report(agents, report_type=None):
-    if report_type == 'new_client':
+    if not report_type == 'global':
         dataset = [
-            {'Global Salse': agent.get_sales(client_type=Offer.NEW_CLIENT),
-             'Memberships': agent.get_sales_for_product('Membership', client_type=Offer.NEW_CLIENT),
-             'Services': agent.get_sales_for_product('Services', client_type=Offer.NEW_CLIENT),
-             'Carnets': agent.get_sales_for_product('Carnets', client_type=Offer.NEW_CLIENT),
-             'Fees': agent.get_sales_for_product('Fees', client_type=Offer.NEW_CLIENT),
-             '%Sales on Global': agent.get_percent_sales_on_global(client_type=Offer.NEW_CLIENT),
-             'Prospects': agent.get_number_of_sales(client_type=Offer.NEW_CLIENT, category=Offer.PROSPECT),
+            {'Global Salse': agent.get_sales(client_type=report_type),
+             'Memberships': agent.get_sales_for_product('Membership', client_type=report_type),
+             'Services': agent.get_sales_for_product('Services', client_type=report_type),
+             'Carnets': agent.get_sales_for_product('Carnets', client_type=report_type),
+             'Fees': agent.get_sales_for_product('Fees', client_type=report_type),
+             '%Sales on Global': agent.get_percent_sales_on_global(client_type=report_type),
+             'Prospects': agent.get_number_of_sales(client_type=report_type, category=Offer.PROSPECT),
              'Prospects Finalized': agent.get_number_prospect_finalized_sales(),
              'Prospects Non Finalized': agent.get_number_prospect_nonfinalized_sales(),
              '% Prospects Finalized': agent.get_percentage_prospect_finalized(),
-             'Comebacks': agent.get_number_of_sales(client_type=Offer.NEW_CLIENT, category=Offer.COMEBACK),
+             'Comebacks': agent.get_number_of_sales(client_type=report_type, category=Offer.COMEBACK),
              '% Total Finalized': agent.get_percentage_total_finalized(),
-             '#Total Sales': agent.get_number_of_sales(product_name='all', client_type=Offer.NEW_CLIENT),
+             '#Total Sales': agent.get_number_of_sales(product_name='all', client_type=report_type),
 
-             'No. Carnet Sales': agent.get_number_of_sales('Carnet', client_type=Offer.NEW_CLIENT),
-             'No. Membership Sales': agent.get_number_of_sales('Membership', client_type=Offer.NEW_CLIENT),
-             'No. Fees': agent.get_number_of_sales('Fee', client_type=Offer.NEW_CLIENT),
-             'No. Services': agent.get_number_of_sales('Service', client_type=Offer.NEW_CLIENT),
-             'Referrals': agent.get_referrals(client_type=Offer.NEW_CLIENT),
+             'No. Carnet Sales': agent.get_number_of_sales('Carnet', client_type=report_type),
+             'No. Membership Sales': agent.get_number_of_sales('Membership', client_type=report_type),
+             'No. Fees': agent.get_number_of_sales('Fee', client_type=report_type),
+             'No. Services': agent.get_number_of_sales('Service', client_type=report_type),
+             'Referrals': agent.get_referrals(client_type=report_type),
              'Extra Referrals': 0,  # TODO: Get clarification
              'Ref/Sale': 0,  # TODO: Get clarification
              'Total Ref/Sale': 0,  # TODO: Get clarification
-             '>14 months': agent.get_sub_gt_14months(client_type=Offer.NEW_CLIENT),
-             'Yearly 12-14 months': agent.get_number_of_sub_for_range(12, 14, client_type=Offer.NEW_CLIENT),
-             'Seasonal 6-11 months': agent.get_number_of_sub_for_range(6, 11, client_type=Offer.NEW_CLIENT),
-             'Trim. 3-5 months': agent.get_number_of_sub_for_range(3, 5, client_type=Offer.NEW_CLIENT),
-             'Monthly 1-2 months': agent.get_number_of_sub_for_range(1, 2, client_type=Offer.NEW_CLIENT),
+             '>14 months': agent.get_sub_gt_14months(client_type=report_type),
+             'Yearly 12-14 months': agent.get_number_of_sub_for_range(12, 14, client_type=report_type),
+             'Seasonal 6-11 months': agent.get_number_of_sub_for_range(6, 11, client_type=report_type),
+             'Trim. 3-5 months': agent.get_number_of_sub_for_range(3, 5, client_type=report_type),
+             'Monthly 1-2 months': agent.get_number_of_sub_for_range(1, 2, client_type=report_type),
              'Other': 0,  # TODO: Get clarification
-             'Total Months': agent.get_all_total_sub_months(client_type=Offer.NEW_CLIENT),
-             'Average Month': agent.get_average_month(client_type=Offer.NEW_CLIENT),
-             'Average Membership Sale': agent.get_average_membership_sale(client_type=Offer.NEW_CLIENT),
+             'Total Months': agent.get_all_total_sub_months(client_type=report_type),
+             'Average Month': agent.get_average_month(client_type=report_type),
+             'Average Membership Sale': agent.get_average_membership_sale(client_type=report_type),
              'Outcome % Scheduled work': 0,  # TODO: Get clarification
              'agent': agent.get_full_name_or_username()
              } for agent in agents]

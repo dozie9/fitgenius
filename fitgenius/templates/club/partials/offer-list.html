@@ -24,14 +24,11 @@
     <td>{{ offer.date }}</td>
 
     <td>
-      <button title="Edit" type="button" hx-target="#dialog" hx-get="{% url 'club:partial-update-offer' offer.id %}"
-              class="btn btn-outline-warning waves-effect waves-light">
-        <i class="bx bx-edit-alt"></i>
-      </button>
-      <button title="Delete" type="button" class="btn btn-outline-danger waves-effect waves-light"
-              data-bs-toggle="modal"
-              data-bs-target="#delete-offer-{{ offer.id }}"><i class="bx bx-trash-alt"></i>
-      </button>
+      <div class="d-flex gap-3">
+        <a href="javascript:void(0);" title="Delete" data-bs-toggle="modal" data-bs-target="#delete-offer-{{ offer.id }}" class="text-danger"><i class="mdi mdi-delete font-size-18"></i></a>
+        <a href="javascript:void(0);" title="Edit" type="button" hx-target="#dialog" hx-get="{% url 'club:partial-update-offer' offer.id %}" class="text-success"><i class="mdi mdi-pencil font-size-18"></i></a>
+
+      </div>
     </td>
 
   </tr>

@@ -268,10 +268,11 @@ class Offer(models.Model):
 
     SPONTANEOUS = 'spontaneous'
     COMEBACK = 'comeback'
+    BOOKED = 'booked'
 
     MEETING_CHOICE = (
         (SPONTANEOUS, SPONTANEOUS.title()),
-        (COMEBACK, COMEBACK.title())
+        (BOOKED, BOOKED.title())
     )
 
     PROSPECT = 'prospect'
