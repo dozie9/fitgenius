@@ -1,8 +1,9 @@
 {% for action in object_list %}
   <tr>
     {% if not request.GET.dashboard %}
-      <td>{{ action.agent.username }}</td>
+      <td>{{ action.agent.get_full_name_or_username }}</td>
     {% endif %}
+    <td>{{ action.amount }}</td>
     <td>{{ action.time_spent }}</td>
     <td>{{ action.get_category_display }}</td>
     <td>{{ action.get_action_display }}</td>

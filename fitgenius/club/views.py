@@ -15,7 +15,7 @@ from guardian.mixins import PermissionListMixin, PermissionRequiredMixin
 
 from .forms import ActionForm, OfferForm, BudgetForm
 from .models import Action, Budget, Product, Offer, OfferedItem, WorkingHour
-from .utils import month_sale_vs_budget, generate_report, export_file, generate_actions_report
+from .utils import month_sale_vs_budget, generate_report, export_file, generate_actions_report, generate_budget_table
 from ..users.forms import UserSignupForm
 from ..utils.utils import PortalRestrictionMixin, AjaxTemplateMixin
 
@@ -143,6 +143,22 @@ class BudgetSalesView(LoginRequiredMixin, View):
         # print(request.user, data, 'USER')
 
         return JsonResponse(data, safe=False)
+
+
+class BudgetTableView(LoginRequiredMixin, PortalRestrictionMixin, ListView):
+    model = Budget
+    template_name = 'club/budget-table.html'
+
+    def get_queryset(self):
+        return Budget.objects.filter(club=self.request.user.club)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update({
+            'budget_df': generate_budget_table(self.get_queryset(), self.request.user.club)
+        })
+        return context
 
 
 class BudgetListView(LoginRequiredMixin, PortalRestrictionMixin, BaseCreateView, ListView):

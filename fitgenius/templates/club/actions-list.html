@@ -56,7 +56,8 @@
             <thead>
             <tr>
               <th>Agent</th>
-              <th>Time spent</th>
+              <th>Amount</th>
+              <th>Time spent (minutes)</th>
               <th>category</th>
               <th>action</th>
               <th>Date</th>
@@ -69,8 +70,9 @@
             <tbody>
             {% for action in object_list %}
               <tr>
-                <td>{{ action.agent.username }}</td>
-                <td>{{ action.time_spent }}</td>
+                <td>{{ action.agent.get_full_name_or_username }}</td>
+                <td>{{ action.amount }}</td>
+                <td>{{ action.time_spent_mins }}</td>
                 <td>{{ action.get_category_display }}</td>
                 <td>{{ action.get_action_display }}</td>
                 <td>{{ action.date }}</td>

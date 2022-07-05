@@ -195,7 +195,7 @@ class Budget(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     class Meta:
-        # ordering = ['-date']
+        ordering = ['-month']
         unique_together = [
             ['agent', 'month']
         ]
@@ -377,6 +377,10 @@ class Action(models.Model):
 
     def __str__(self):
         return f'{self.date} {self.action}'
+
+    @property
+    def time_spent_mins(self):
+        return self.time_spent / 60
 
     def get_absolute_url(self):
         return reverse('club:update-action', kwargs={'pk': self.pk})

@@ -48,8 +48,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         # print(product_aggr, json.dumps(product_aggr, cls=DecimalEncoder))
 
         # yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
-        a_month_ago = months_ago(1)
-        a_year_ago = years_ago(1)
+        # a_month_ago = months_ago(1)
+        # a_year_ago = years_ago(1)
 
         sales_aggr = {
             'no_of_products': sales.aggregate(total_product=Sum('no_product'))['total_product'],
@@ -77,8 +77,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'sales_aggr': sales_aggr,
             'sales': sales,
             'days_of_the_week': days_of_the_week(),
-            'current_date': timezone.now().date(),
-            'a_year_ago': a_year_ago,
+            # 'current_date': timezone.now().date(),
+            # 'a_year_ago': a_year_ago,
 
         })
         return context

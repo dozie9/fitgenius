@@ -6,7 +6,7 @@ from .views import (
     OfferCreateView, OfferUpdateView, OfferListView, DeleteActionView, DeleteBudgetView,
     DeleteOfferView, OfferedItemUpdateFormView, OfferedItemCreateFormView, OfferedItemView,
     DeleteOfferedItemView, OfferList, OfferPartialUpdateView, BudgetSalesView, SetWorkingHoursView, ReportView,
-    ActionList
+    ActionList, BudgetTableView
 )
 
 app_name = "club"
@@ -22,6 +22,7 @@ urlpatterns = [
     path('budget/update/<int:pk>/', BudgetUpdateView.as_view(), name='update-budget'),
     path('budget/delete/<int:pk>/', DeleteBudgetView.as_view(), name='delete-budget'),
     path('budgets/', BudgetListView.as_view(), name='list-budget'),
+    path('budgets/table/', BudgetTableView.as_view(), name='budget-table'),
 
     # path('product/add/', ProductCreateView.as_view(), name='add-product'),
     # path('product/update/<int:pk>/', ProductUpdateView.as_view(), name='update-product'),

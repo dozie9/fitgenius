@@ -1,17 +1,19 @@
 import calendar
 import datetime
 import itertools
+from typing import Union, List
 
 import pandas as pd
+import numpy as np
 
 from django.core.serializers import serialize
-from django.db.models import OuterRef, F, Sum, Subquery, Count
+from django.db.models import OuterRef, F, Sum, Subquery, Count, QuerySet, Avg
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework.renderers import JSONRenderer
 
-from fitgenius.club.models import OfferedItem, Offer, Budget, Product, Action, WorkingHour
+from fitgenius.club.models import OfferedItem, Offer, Budget, Product, Action, WorkingHour, Club
 from fitgenius.club.serializers import OfferSerializer, BudgetSerializer
 from fitgenius.utils.query_debugger import query_debugger
 
@@ -196,6 +198,29 @@ def generate_actions_report(qs, user_actions):
     return actions_df
 
 
+def generate_budget_table(qs: Union[QuerySet, List[Budget]], club: Club):
+    end_date = timezone.now().date()
+    start_date = years_ago(1).date()#.replace(day=1)
+
+    month_list = pd.date_range(start_date, end_date, freq='MS').to_pydatetime().tolist()
+    working_day_list = [qs.filter(month__year=x.year, month__month=x.month).aggregate(total=Avg('working_days'))['total'] for x in month_list]
+    working_day_df = pd.DataFrame([working_day_list], columns=month_list, index=['working days'])
+
+    users_index = [agent.get_full_name_or_username() for agent in club.user_set.all()]
+
+    budget_df = pd.DataFrame(columns=month_list, index=users_index)
+
+    for month, user in itertools.product(month_list, users_index):
+        budget_amount = qs.filter(month__year=month.year, month__month=month.month, agent__username=user).aggregate(total=Sum('amount'))['total']
+        budget_df.at[user, month] = budget_amount
+
+    budget_df = budget_df.append(budget_df.sum().rename('Total'))
+
+    new_df = pd.concat([working_day_df, budget_df])
+
+    return new_df
+
+
 def get_yesterday_progress(club):
     yesterday = timezone.now() - datetime.timedelta(days=1)
     agents = club.user_set.all()
@@ -262,8 +287,10 @@ def club_yesterday(club):
 
 def club_month_progress(club):
     current_day = timezone.now().date()
+    # first day of the current month
     start_date = current_day.replace(day=1)
 
+    # last day of the current month
     end_date = datetime.date(
         current_day.year, current_day.month, calendar.monthrange(current_day.year, current_day.month)[-1]
     )

@@ -106,11 +106,12 @@
             </li>
           {% endfor %}
 
-          <li class="menu-title" key="t-apps">Management</li>
+
 
           {% if user.user_type == user.MANAGER %}
+            <li class="menu-title" key="t-apps">Management</li>
             <li>
-              <a href="{% url 'club:list-budget' %}" class="waves-effect">
+              <a href="{% url 'club:budget-table' %}" class="waves-effect">
                 <i class="bx bx-money"></i>
 
                 <span key="t-file-manager">Budget</span>

@@ -1,17 +1,22 @@
 from datetime import date
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from .models import Action, Offer, WorkingHour
+from ..utils.utils import years_ago
 
 User = get_user_model()
 
 
 def club_context(request):
     """Expose some settings from club in templates."""
+    a_year_ago = years_ago(1)
     return {
         "ClubAction": Action,
         "ClubOffer": Offer,
+        'current_date': timezone.now().date(),
+        'a_year_ago': a_year_ago,
     }
 
 
