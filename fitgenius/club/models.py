@@ -299,6 +299,7 @@ class Offer(models.Model):
     objects = OfferManager()
 
     class Meta:
+        ordering = ['-date']
         permissions = (
             ('access_offer', 'Access offer'),
         )
