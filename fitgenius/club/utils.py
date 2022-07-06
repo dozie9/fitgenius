@@ -110,9 +110,9 @@ def generate_report(agents, report_type=None):
              'No. Fees': agent.get_number_of_sales('Fee', client_type=report_type),
              'No. Services': agent.get_number_of_sales('Service', client_type=report_type),
              'Referrals': agent.get_referrals(client_type=report_type),
-             'Extra Referrals': 0,  # TODO: Get clarification
-             'Ref/Sale': 0,  # TODO: Get clarification
-             'Total Ref/Sale': 0,  # TODO: Get clarification
+             # 'Extra Referrals': agent.get_no_extra_referrals(),
+             'Ref/Sale': agent.ref_sales_ratio(client_type=report_type),
+             # 'Total Ref/Sale': agent.total_ref_sales_ratio(),  # TODO: Get clarification
              '>14 months': agent.get_sub_gt_14months(client_type=report_type),
              'Yearly 12-14 months': agent.get_number_of_sub_for_range(12, 14, client_type=report_type),
              'Seasonal 6-11 months': agent.get_number_of_sub_for_range(6, 11, client_type=report_type),
@@ -122,7 +122,7 @@ def generate_report(agents, report_type=None):
              'Total Months': agent.get_all_total_sub_months(client_type=report_type),
              'Average Month': agent.get_average_month(client_type=report_type),
              'Average Membership Sale': agent.get_average_membership_sale(client_type=report_type),
-             'Outcome % Scheduled work': 0,  # TODO: Get clarification
+             'Outcome % Scheduled work': agent.get_percentage_scheduled_work(client_type=report_type),  # TODO: Get clarification
              'agent': agent.get_full_name_or_username()
              } for agent in agents]
     else:
@@ -141,9 +141,9 @@ def generate_report(agents, report_type=None):
              'No. Fees': agent.get_number_of_sales('Fee'),
              'No. Services': agent.get_number_of_sales('Service'),
              'Referrals': agent.get_referrals(),
-             'Extra Referrals': 0, # TODO: Get clarification
-             'Ref/Sale': 0, # TODO: Get clarification
-             'Total Ref/Sale': 0, # TODO: Get clarification
+             'Extra Referrals': agent.get_no_extra_referrals(),
+             'Ref/Sale': agent.ref_sales_ratio(),
+             'Total Ref/Sale': agent.total_ref_sales_ratio(), # TODO: Get clarification
              '>14 months': agent.get_sub_gt_14months(),
              'Yearly 12-14 months': agent.get_number_of_sub_for_range(12, 14),
              'Seasonal 6-11 months': agent.get_number_of_sub_for_range(6, 11),
@@ -153,7 +153,7 @@ def generate_report(agents, report_type=None):
              'Total Months': agent.get_all_total_sub_months(),
              'Average Month': agent.get_average_month(),
              'Average Membership Sale': agent.get_average_membership_sale(),
-             'Outcome % Scheduled work': 0, # TODO: Get clarification
+             'Outcome % Scheduled work': agent.get_percentage_scheduled_work(), # TODO: Get clarification
              'agent': agent.get_full_name_or_username()
              } for agent in agents]
     # print(dataset)

@@ -97,15 +97,31 @@ class User(AbstractUser):
 
     def get_referrals(self, client_type=None):
         if client_type:
-            return self.offer_set.filter(client_type=client_type).aggregate(sum=Sum('referrals'))['sum']
-        return self.offer_set.all().aggregate(sum=Sum('referrals'))['sum']
+            total_ref = self.offer_set.filter(client_type=client_type).aggregate(sum=Sum('referrals'))['sum']
+            return 0 if total_ref is None else total_ref
+        total_ref = self.offer_set.all().aggregate(sum=Sum('referrals'))['sum']
+        return 0 if total_ref is None else total_ref
 
-    def get_sales(self, client_type=None):
+    def get_no_extra_referrals(self):
+        from fitgenius.club.models import Action
+        return self.action_set.filter(action=Action.EXTRA_REFERRALS).count()
+
+    def get_ref_sales_ratio(self):
+        pass
+
+    def get_sales(self, client_type=None, meeting_type=None, category_type=None):
         offer_qs = self.offer_set.agent_sales(agent_uuid=self.uuid)
-        if not client_type:
-            sales = offer_qs.aggregate(sales=Sum('total_sales'))['sales']
-            return 0 if sales is None else sales
-        sales = offer_qs.filter(client_type=client_type).aggregate(sales=Sum('total_sales'))['sales']
+        if client_type:
+
+            offer_qs = offer_qs.filter(client_type=client_type)
+
+        if meeting_type:
+            offer_qs = offer_qs.filter(meeting_type=meeting_type)
+
+        if category_type:
+            offer_qs = offer_qs.filter(category_type=category_type)
+
+        sales = offer_qs.aggregate(sales=Sum('total_sales'))['sales']
         return 0 if sales is None else sales
 
     def get_percent_sales_on_global(self, client_type):
@@ -179,9 +195,30 @@ class User(AbstractUser):
         # TODO: Get clarification
         try:
             if client_type:
-                return self.get_referrals(client_type=client_type) / self.get_sales(client_type=client_type)
-            return self.get_referrals() / self.get_sales()
-        except decimal.InvalidOperation:
+                return (
+                    (self.get_number_of_sales(product_name='Membership', client_type=client_type) +
+                     self.get_number_of_sales(product_name='Service', client_type=client_type) +
+                     self.get_number_of_sales(product_name='Carnet', client_type=client_type)
+                     ) / self.get_referrals(client_type=client_type)
+                )
+            return (
+                (self.get_number_of_sales(product_name='Membership') +
+                 self.get_number_of_sales(product_name='Service') +
+                 self.get_number_of_sales(product_name='Carnet')
+                 ) / self.get_referrals()
+            )
+        except (decimal.InvalidOperation, ZeroDivisionError):
+            return 0
+
+    def total_ref_sales_ratio(self):
+        try:
+            return (
+                (self.get_number_of_sales(product_name='Membership') +
+                 self.get_number_of_sales(product_name='Service') +
+                 self.get_number_of_sales(product_name='Carnet')
+                 ) / self.get_referrals() + self.get_no_extra_referrals()
+            )
+        except ZeroDivisionError:
             return 0
 
     def finalized_sales_on_ref(self):
@@ -271,8 +308,16 @@ class User(AbstractUser):
         except ZeroDivisionError:
             return 0
 
-    def get_percentage_scheduled_work(self):
-        return 0
+    def get_percentage_scheduled_work(self, client_type=None):
+        from fitgenius.club.models import Offer
+        try:
+            if client_type:
+                scheduled_sale = self.get_sales(client_type=client_type, meeting_type=Offer.BOOKED)
+                return (scheduled_sale * 100) / self.get_sales(client_type=client_type)
+            scheduled_sale = self.get_sales(meeting_type=Offer.BOOKED)
+            return (scheduled_sale * 100) / self.get_sales()
+        except ZeroDivisionError:
+            return 0
 
     def get_month_budget(self, month):
         month_ = month.month
