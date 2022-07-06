@@ -17,9 +17,9 @@
         {% endfor %}
       </ul>
     </td>
-    <td>{{ offer.client_type }}</td>
-    <td>{{ offer.meeting_type }}</td>
-    <td>{{ offer.category }}</td>
+    <td>{{ offer.get_client_type_display }}</td>
+    <td>{{ offer.get_meeting_type_display }}</td>
+    <td>{{ offer.get_category_display }}</td>
     <td>{{ offer.accepted | yesno:"Yes,No" }}</td>
     <td>{{ offer.referrals }}</td>
     <td>{{ offer.date }}</td>
