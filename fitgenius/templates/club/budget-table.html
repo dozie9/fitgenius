@@ -74,7 +74,7 @@
               <tbody>
               {% for index, row in budget_df.iterrows %}
                 <tr class="{% if index == 'working days' or index == 'Total' %}table-info{% endif %}">
-                  <td>{{ index }}</td>
+                  <th>{{ index | capfirst }}</th>
                   {% for td in row %}
                     {% if index == 'working days' %}
                       <td>{{ td | default_if_none:0 | floatformat }}</td>

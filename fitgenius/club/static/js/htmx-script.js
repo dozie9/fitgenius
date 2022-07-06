@@ -6,7 +6,8 @@
         if (e.target.id === 'offer-table-body' || e.target.id === 'action-table-body') {
             $(document).ready(function () {
                 $(".datatable").DataTable({
-                    "order": []
+                    "order": [],
+                    'responsive': false
                 }), $("#datatable-buttons").DataTable({
                     lengthChange: !1,
                     buttons: ["copy", "excel", "pdf", "colvis"]

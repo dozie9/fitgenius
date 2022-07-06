@@ -8,10 +8,11 @@
       <ul>
         {% for item in offer.offereditem_set.all %}
           <li>
-            x{{ item.quantity }} <b>{{ item.product.title }}</b>
+            <b>{{ item.product.title }}</b>
             {% if item.number_of_months %}
               {{ item.number_of_months }} months
             {% endif %}
+            {{ item.price }} €
           </li>
         {% endfor %}
       </ul>
@@ -19,14 +20,14 @@
     <td>{{ offer.client_type }}</td>
     <td>{{ offer.meeting_type }}</td>
     <td>{{ offer.category }}</td>
-    <td>{{ offer.accepted }}</td>
+    <td>{{ offer.accepted | yesno:"Yes,No" }}</td>
     <td>{{ offer.referrals }}</td>
     <td>{{ offer.date }}</td>
 
     <td>
       <div class="d-flex gap-3">
         <a href="javascript:void(0);" title="Delete" data-bs-toggle="modal" data-bs-target="#delete-offer-{{ offer.id }}" class="text-danger"><i class="mdi mdi-delete font-size-18"></i></a>
-        <a href="javascript:void(0);" title="Edit" type="button" hx-target="#dialog" hx-get="{% url 'club:partial-update-offer' offer.id %}" class="text-success"><i class="mdi mdi-pencil font-size-18"></i></a>
+        <a href="javascript:void(0);" title="Edit" hx-target="#dialog" hx-get="{% url 'club:partial-update-offer' offer.id %}" class="text-success"><i class="mdi mdi-pencil font-size-18"></i></a>
 
       </div>
     </td>

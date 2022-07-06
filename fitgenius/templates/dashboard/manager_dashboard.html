@@ -1,5 +1,5 @@
 {% extends 'partials/base.html' %}
-{% load static humanize user_extras %}
+{% load static humanize user_extras club_tags %}
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/datepicker.min.css' %}"/>
@@ -93,7 +93,7 @@
             <div class="col-sm-6">
               <p class="text-muted">This month</p>
               <h3>{{ club_month_progress.current_sales | floatformat:2 }}€</h3>
-              <p class="text-muted"><span class="text-success me-2"> {{ club_month_progress.trend | floatformat:2 }}% <i class="mdi mdi-arrow-up"></i> </span> From
+              <p class="text-muted">{% percent_direction club_month_progress.trend as month_trend %}{{ month_trend | safe }} From
                 previous period</p>
 
 
@@ -220,7 +220,7 @@
                 <th>{{ club_yesterday.budget_progress | floatformat:2 }}</th>
                 <th>{{ club_yesterday.current_sales | floatformat:2 }}</th>
                 <th>{{ club_yesterday.gap | floatformat:2 }}</th>
-                <th>{{ club_yesterday.trend | floatformat:2 }}</th>
+                <th>{% percent_direction club_yesterday.trend as y_trend %} {{ y_trend | safe }}</th>
               </tr>
             </table>
 
@@ -243,7 +243,7 @@
                   <td>{{ data.budget_progress | floatformat:2 }}€</td>
                   <td>{{ data.current_sales | floatformat:2 }}€</td>
                   <td>{{ data.gap | floatformat:2 }}€</td>
-                  <td>{{ data.trend | floatformat:2 }}%</td>
+                  <td>{% percent_direction data.trend as y_data_trend %}{{ y_data_trend | safe }}</td>
                 </tr>
               {% endfor %}
               </tbody>
@@ -264,7 +264,7 @@
                 <th>{{ club_month_progress.budget_progress | floatformat:2 }}</th>
                 <th>{{ club_month_progress.current_sales | floatformat:2 }}</th>
                 <th>{{ club_month_progress.gap | floatformat:2 }}</th>
-                <th>{{ club_month_progress.trend | floatformat:2 }}</th>
+                <th>{% percent_direction club_month_progress.trend as month_trend %}{{ month_trend | safe }}</th>
               </tr>
             </table>
 
@@ -287,7 +287,7 @@
                   <td>{{ data.budget_progress | floatformat:2 }}€</td>
                   <td>{{ data.current_sales | floatformat:2 }}€</td>
                   <td>{{ data.gap | floatformat:2 }}€</td>
-                  <td>{{ data.trend | floatformat:2 }}%</td>
+                  <td>{% percent_direction data.trend as month_data_trend %}{{ month_data_trend | safe }}</td>
                 </tr>
               {% endfor %}
               </tbody>
@@ -309,7 +309,7 @@
                 <th>{{ club_year_progress.budget_progress | floatformat:2 }}</th>
                 <th>{{ club_year_progress.current_sales | floatformat:2 }}</th>
                 <th>{{ club_year_progress.gap | floatformat:2 }}</th>
-                <th>{{ club_year_progress.trend | floatformat:2 }}</th>
+                <th>{% percent_direction club_year_progress.trend as year_trend %}{{ year_trend | safe }}</th>
               </tr>
             </table>
 
@@ -332,7 +332,7 @@
                   <td>{{ data.budget_progress | floatformat:2 }}€</td>
                   <td>{{ data.current_sales | floatformat:2 }}€</td>
                   <td>{{ data.gap | floatformat:2 }}€</td>
-                  <td>{{ data.trend | floatformat:2 }}%</td>
+                  <td>{% percent_direction data.trend as year_data_trend %}{{ year_data_trend | safe }}</td>
                 </tr>
               {% endfor %}
               </tbody>
