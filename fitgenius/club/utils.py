@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 
 from django.core.serializers import serialize
-from django.db.models import OuterRef, F, Sum, Subquery, Count, QuerySet, Avg
+from django.db.models import OuterRef, F, Sum, Subquery, Count, QuerySet, Avg, Q
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
 from django.utils import timezone
@@ -174,7 +174,7 @@ def export_file(data_frame, file_type):
         return response
 
 
-def generate_actions_report(qs, user_actions):
+def generate_actions_report(qs: Union[QuerySet, List[Action]], user_actions):
     # df = pd.DataFrame.from_records(qs.values_list())
     # df.columns = [col for col in qs[0].__dict__.keys()][1:]
 
@@ -191,11 +191,47 @@ def generate_actions_report(qs, user_actions):
         total_amount = actions_qs.aggregate(total=Sum('amount'))['total']
         if total_amount is not None:
             actions_df.at[action, category] = total_amount
+    # if user_actions == 'global':
+    #     # print('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
+    #     actions_df.index.name = 'Total'
+    # else:
+    #     actions_df.index.name = qs[0].agent.get_full_name_or_username()
+
+    booked = qs.filter(action=Action.BOOKED_MEETINGS).aggregate(total=Sum('amount'))['total'] or 0
+    no_show = qs.filter(action=Action.NO_SHOW).aggregate(total=Sum('amount'))['total'] or 0
+
+    call_email_message = qs.filter(
+        Q(action=Action.CALLS) | Q(action=Action.EMAIL) | Q(action=Action.MESSAGE)
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    percent_bookings = (booked * 100) / call_email_message
+
+    percent_no_show = (no_show * 100) / booked
+
+    calls = qs.filter(action=Action.CALLS).aggregate(total=Sum('amount'))['total'] or 0
+    time_worked = WorkingHour.objects.all().aggregate(total=Sum('hours'))['total'] or 0
+    calls_per_hour = calls / time_worked
+    percent_bookings_cell = f'%BOOKINGS \n{round(percent_bookings, 2)}'
+    calls_per_hour_cell = f'CALLS PER HOUR \n{round(calls_per_hour, 2)}'
+
+    new_df = pd.DataFrame(
+        {
+            columns[0]: percent_bookings_cell,
+            columns[1]: calls_per_hour_cell,
+        },
+        columns=columns, index=['']
+    )
+    # new_df.append({columns[0]: percent_bookings}, ignore_index=True)
+    # print(new_df)
+    new_action_df = pd.concat([actions_df, new_df, pd.DataFrame({columns[0]: f'%NOSHOW \n{round(percent_no_show, 2)}'}, columns=columns, index=[''])])
+
     if user_actions == 'global':
-        actions_df.index.name = 'Total'
+
+        new_action_df.index.name = 'Total'
     else:
-        actions_df.index.name = qs[0].agent.get_full_name_or_username()
-    return actions_df
+        new_action_df.index.name = qs[0].agent.get_full_name_or_username()
+
+    return new_action_df
 
 
 def generate_budget_table(qs: Union[QuerySet, List[Budget]], club: Club):

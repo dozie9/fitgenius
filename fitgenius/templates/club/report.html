@@ -56,16 +56,28 @@
                 </div>
               </div>
 
-              {% for agent in club_users %}
+              {% if user.user_type == user.MANAGER %}
+
+                {% for agent in club_users %}
+                  <div class="mb-3">
+                    <div class="form-check">
+                      <input class="users-checkbox form-check-input" id="usr-{{ agent.id }}" type="checkbox"
+                             name="username"
+                             value="{{ agent.username }}">
+                      <label class="form-check-label" for="usr-{{ agent.id }}">{{ agent.username }}</label>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
                 <div class="mb-3">
                   <div class="form-check">
-                    <input class="users-checkbox form-check-input" id="usr-{{ agent.id }}" type="checkbox"
+                    <input class="users-checkbox form-check-input" id="usr-{{ user.id }}" type="checkbox"
                            name="username"
-                           value="{{ agent.username }}">
-                    <label class="form-check-label" for="usr-{{ agent.id }}">{{ agent.username }}</label>
+                           value="{{ user.username }}">
+                    <label class="form-check-label" for="usr-{{ user.id }}">{{ user.username }}</label>
                   </div>
                 </div>
-              {% endfor %}
+              {% endif %}
               <div>
                 <button class="btn btn-primary w-md">Get report</button>
               </div>
@@ -84,12 +96,16 @@
               </div>
             <h5 class="mt-4">Select User</h5>
 
+
+
+            {% if user.user_type == user.MANAGER %}
               <div class="mb-3">
                 <div class="form-check">
                   <input type="radio" class="form-check-input" id="act_" name="user_actions" value="global">
                   <label for="act_" class="form-check-label">Global</label>
                 </div>
               </div>
+
               {% for agent in club_users %}
                 <div class="mb-3">
                   <div class="form-check">
@@ -98,6 +114,14 @@
                   </div>
                 </div>
               {% endfor %}
+            {% else %}
+                <div class="mb-3">
+                  <div class="form-check">
+                    <input type="radio" id="act_{{ user.id }}" class="form-check-input" name="user_actions" value="{{ user.uuid }}">
+                    <label class="form-check-label" for="act_{{ user.id }}">{{ user.get_full_name_or_username }}</label><br>
+                  </div>
+                </div>
+            {% endif %}
               <div>
                 <button class="btn btn-primary w-md">Get report</button>
               </div>
