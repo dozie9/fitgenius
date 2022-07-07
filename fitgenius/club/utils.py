@@ -204,13 +204,24 @@ def generate_actions_report(qs: Union[QuerySet, List[Action]], user_actions):
         Q(action=Action.CALLS) | Q(action=Action.EMAIL) | Q(action=Action.MESSAGE)
     ).aggregate(total=Sum('amount'))['total'] or 0
 
-    percent_bookings = (booked * 100) / call_email_message
+    try:
+        percent_bookings = (booked * 100) / call_email_message
+    except ZeroDivisionError:
+        percent_bookings = 0
 
-    percent_no_show = (no_show * 100) / booked
+    try:
+        percent_no_show = (no_show * 100) / booked
+    except ZeroDivisionError:
+        percent_no_show = 0
 
     calls = qs.filter(action=Action.CALLS).aggregate(total=Sum('amount'))['total'] or 0
     time_worked = WorkingHour.objects.all().aggregate(total=Sum('hours'))['total'] or 0
-    calls_per_hour = calls / time_worked
+
+    try:
+        calls_per_hour = calls / time_worked
+    except ZeroDivisionError:
+        calls_per_hour = 0
+
     percent_bookings_cell = f'%BOOKINGS \n{round(percent_bookings, 2)}'
     calls_per_hour_cell = f'CALLS PER HOUR \n{round(calls_per_hour, 2)}'
 
