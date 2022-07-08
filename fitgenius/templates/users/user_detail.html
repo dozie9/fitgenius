@@ -7,6 +7,9 @@
     <div class="card">
       <div class="card-body">
         <h4 class="card-title mb-4">Personal Information</h4>
+        <div class="avatar-md profile-user-wid mb-4 mx-auto">
+                <img src="{{user.get_img_url}}" alt="" class="img-thumbnail rounded-circle">
+              </div>
 
 
         <div class="table-responsive">
@@ -28,6 +31,9 @@
 
             </tbody>
           </table>
+          <a href="javascript: void(0);" hx-target="#dialog" hx-get="{% url 'users:update-profile' %}"
+                     class="btn btn-primary waves-effect waves-light btn-sm float-end mt-2">Edit Profile <i
+                    class="mdi mdi-pencil ms-1"></i></a>
         </div>
       </div>
     </div>

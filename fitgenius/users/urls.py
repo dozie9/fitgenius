@@ -3,7 +3,7 @@ from django.urls import path
 from fitgenius.users.views import (
     user_detail_view,
     user_redirect_view,
-    user_update_view, CreateUserView, UpdateUserView, ListUserView, DeleteUserView
+    user_update_view, CreateUserView, UpdateUserView, ListUserView, DeleteUserView, UpdateProfileView
 )
 
 app_name = "users"
@@ -18,4 +18,5 @@ urlpatterns = [
     path('', ListUserView.as_view(), name="list-user"),
     # path("<str:username>/", view=user_detail_view, name="detail"),
     path("profile/", view=user_detail_view, name="detail"),
+    path("update-profile/", view=UpdateProfileView.as_view(), name="update-profile"),
 ]

@@ -1,5 +1,6 @@
 $(document).ready(function () {
-    $("#datatable").DataTable({
+    $(".datatable").DataTable({
+        'destroy': true,
         "order": [],
         'responsive': false
     }), $("#datatable-buttons").DataTable({

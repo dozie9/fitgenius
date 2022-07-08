@@ -3,10 +3,15 @@ import uuid
 import decimal
 
 from django.contrib.auth.models import AbstractUser
-from django.db.models import (CharField, ForeignKey, CASCADE, UUIDField, Sum, Count)
+from django.db.models import (CharField, ForeignKey, ImageField, CASCADE, UUIDField, Sum, Count)
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+
+def get_user_image_dir(instance, filename):
+
+    return "profile_pictures/{0}/{1}".format(instance.username, filename)
 
 
 class User(AbstractUser):
@@ -33,6 +38,8 @@ class User(AbstractUser):
     club = ForeignKey('club.Club', on_delete=CASCADE, null=True)
     uuid = UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
+    img = ImageField(_("Avatar"), upload_to=get_user_image_dir, null=True, blank=True)
+
     def get_full_name_or_username(self) -> str:
         if self.get_full_name():
             return self.get_full_name()
@@ -46,6 +53,11 @@ class User(AbstractUser):
 
         """
         return reverse("users:detail", kwargs={"username": self.username})
+
+    def get_img_url(self):
+        if self.img and hasattr(self.img, 'url'):
+            return self.img.url
+        return '/static/images/users/avatar-1.jpg'
 
     def get_time_worked(self):
         # from fitgenius.club.models import WorkingHour

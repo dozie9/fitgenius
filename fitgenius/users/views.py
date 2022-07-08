@@ -83,6 +83,19 @@ class UpdateUserView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
     success_url = reverse_lazy('users:list-user')
 
 
+class UpdateProfileView(LoginRequiredMixin, AjaxTemplateMixin, UpdateView):
+    model = User
+    fields = ['first_name', 'last_name', 'img']
+    # slug_url_kwarg = 'uuid'
+    template_name = 'users/update_profile-form.html'
+    # query_pk_and_slug = False
+    # slug_field = 'uuid'
+    success_url = reverse_lazy('core:dashboard')
+
+    def get_object(self):
+        return self.request.user
+
+
 class ListUserView(LoginRequiredMixin, PortalRestrictionMixin, FormMixin, ListView):
     model = User
     template_name = 'users/user-list.html'

@@ -1,0 +1,24 @@
+{% load crispy_forms_tags %}
+<div class="modal-content">
+  <div class="modal-header">
+    <h5 class="modal-title" id="myModalLabel"></h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+  <div class="modal-body">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title mb-4">Personal Information</h4>
+        <div class="avatar-md profile-user-wid mb-4 mx-auto">
+                <img src="{{user.get_img_url}}" alt="" class="img-thumbnail rounded-circle">
+              </div>
+
+
+        <form method="post" action="{% url 'users:update-profile' %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form|crispy }}
+          <button class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

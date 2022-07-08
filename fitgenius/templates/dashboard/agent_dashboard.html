@@ -196,7 +196,7 @@
                 <table id="" class="table table-bordered dt-responsive  nowrap w-100 datatable">
                   <thead>
                   <tr>
-                    <td>{{ action.amount }}</td>
+                    <th>Amount</th>
                     <th>Time spent</th>
                     <th>category</th>
                     <th>action</th>
@@ -207,7 +207,7 @@
                   </thead>
 
 
-                  <tbody id="action-table-body"
+                  <tbody id="dashboard-action-table-body"
                          hx-get="{% url 'club:partial-list-action' %}?dashboard=agent&m={{ current_date.month }}&d={{ current_date.day }}&y={{ current_date.year }}"
                          hx-trigger="load, dataChanged from:body">
 
@@ -250,7 +250,7 @@
                   </thead>
 
 
-                  <tbody id="offer-table-body"
+                  <tbody id="dashboard-offer-table-body"
                          hx-get="{% url 'club:partial-list-offer' %}?dashboard=agent&m={{ current_date.month }}&d={{ current_date.day }}&y={{ current_date.year }}"
                          hx-trigger="load, dataChanged from:body">
 
@@ -286,7 +286,7 @@
           <div class="row">
             <div class="col-sm-4">
               <div class="avatar-md profile-user-wid mb-4">
-                <img src="{% static 'images/users/avatar-1.jpg' %}" alt="" class="img-thumbnail rounded-circle">
+                <img src="{{user.get_img_url}}" alt="" class="img-thumbnail rounded-circle">
               </div>
               <h5 class="font-size-15 text-truncate">{{ user.get_full_name_or_username }}</h5>
               {#              <p class="text-muted mb-0 text-truncate">UI/UX Designer</p>#}
@@ -352,6 +352,8 @@
   <script src="{% static 'libs/datatables.net-buttons/js/buttons.html5.min.js' %}"></script>
   <script src="{% static 'libs/datatables.net-buttons/js/buttons.print.min.js' %}"></script>
   <script src="{% static 'libs/datatables.net-buttons/js/buttons.colVis.min.js' %}"></script>
+    <!-- Datatable init js -->
+  <script src="{% static 'js/pages/datatables.init.js' %}"></script>
   <!-- apexcharts -->
   <script src="{% static 'libs/apexcharts/dist/apexcharts.min.js' %}"></script>
   <!-- echarts js -->
