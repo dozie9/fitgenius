@@ -6,7 +6,7 @@ from .views import (
     OfferCreateView, OfferUpdateView, OfferListView, DeleteActionView, DeleteBudgetView,
     DeleteOfferView, OfferedItemUpdateFormView, OfferedItemCreateFormView, OfferedItemView,
     DeleteOfferedItemView, OfferList, OfferPartialUpdateView, BudgetSalesView, SetWorkingHoursView, ReportView,
-    ActionList, BudgetTableView
+    ActionList, BudgetTableView, WorkingHoursListView, UpdateWorkingHourView, DeleteWorkingHoursView
 )
 
 app_name = "club"
@@ -44,6 +44,9 @@ urlpatterns = [
     path('b-sales/', BudgetSalesView.as_view(), name='budget-sales'),
 
     path('set-working-hours/', SetWorkingHoursView.as_view(), name='set-working-hours'),
+    path('working-hours/', WorkingHoursListView.as_view(), name='working-hours'),
+    path('working-hours/update/<int:pk>/', UpdateWorkingHourView.as_view(), name='update-working-hours'),
+    path('working-hours/delete/<int:pk>/', DeleteWorkingHoursView.as_view(), name='delete-working-hours'),
 
     path('report/', ReportView.as_view(), name='report')
 

@@ -2,7 +2,7 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch.dispatcher import receiver
 from guardian.shortcuts import assign_perm
 
-from .models import Action, Offer
+from .models import Action, Offer, WorkingHour
 
 action_time_dict = {
     Action.MISSED_CALLS: 30,
@@ -43,3 +43,12 @@ def offer_post_save(sender, instance: Offer, created, **kwargs):
         # assigning permission to manager
         assign_perm('access_offer', offer_qs.first().club.manager, instance)
 
+
+@receiver(post_save, sender=WorkingHour)
+def working_hours_post_save(sender, instance: WorkingHour, created, **kwargs):
+    if created:
+        # assigning permission to agent
+        assign_perm('access_working_hour', instance.agent, instance)
+
+        # assigning permission to manager
+        assign_perm('access_working_hour', instance.agent.club.manager, instance)

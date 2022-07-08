@@ -290,7 +290,7 @@ class Offer(models.Model):
     referrals = models.PositiveIntegerField(default=0)
     agent = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     club = models.ForeignKey(Club, on_delete=models.CASCADE, null=True)
-    date = models.DateField(default=timezone.now().date)
+    date = models.DateField(default=datetime.date.today)
 
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -364,7 +364,7 @@ class Action(models.Model):
     category = models.CharField(max_length=255, choices=CATEGORY_CHOICES)
     action = models.CharField(max_length=255, choices=ACTION_CHOICES)
     agent = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    date = models.DateField(default=timezone.now().date)
+    date = models.DateField(default=datetime.date.today)
     club = models.ForeignKey(Club, on_delete=models.CASCADE, null=True)
 
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -372,6 +372,7 @@ class Action(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     class Meta:
+        ordering = ['-date']
         permissions = (
             ('access_action', 'Access action'),
         )
@@ -389,7 +390,7 @@ class Action(models.Model):
 
 class WorkingHour(models.Model):
     agent = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = models.DateField(default=timezone.now().date)
+    date = models.DateField(default=datetime.date.today)
     hours = models.PositiveIntegerField()
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
@@ -398,6 +399,9 @@ class WorkingHour(models.Model):
         unique_together = [
             ['agent', 'date']
         ]
+        permissions = (
+            ('access_working_hour', 'Access working hour'),
+        )
 
     def __str__(self):
         return f"{self.agent.username} | {self.date.strftime('%m/%d/%Y')} | {self.hours}"

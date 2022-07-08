@@ -464,6 +464,33 @@ class DeleteOfferView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     raise_exception = True
 
 
+class WorkingHoursListView(LoginRequiredMixin, PermissionListMixin, ListView):
+    model = WorkingHour
+    template_name = 'club/workinghours_list.html'
+    permission_required = ['club.access_working_hour']
+
+    def get_queryset(self):
+        return WorkingHour.objects.filter(agent=self.request.user)
+
+
+class DeleteWorkingHoursView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = WorkingHour
+    success_message = 'Successfully deleted'
+    success_url = reverse_lazy('club:working-hours')
+    permission_required = ['club.access_working_hour']
+    raise_exception = True
+
+
+class UpdateWorkingHourView(LoginRequiredMixin, PermissionRequiredMixin, AjaxTemplateMixin, UpdateView):
+    model = WorkingHour
+    template_name = 'club/working-hours-form.html'
+    fields = ['hours', 'date']
+    # form_class = ActionForm
+    success_url = reverse_lazy('club:working-hours')
+    permission_required = ['club.access_working_hour']
+    raise_exception = True
+
+
 class SetWorkingHoursView(LoginRequiredMixin, CreateView):
     http_method_names = ['post']
     model = WorkingHour
@@ -478,7 +505,7 @@ class SetWorkingHoursView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ReportView(LoginRequiredMixin, PortalRestrictionMixin, TemplateView):
+class ReportView(LoginRequiredMixin, TemplateView):
     template_name = 'club/report.html'
 
     def post(self, request, *args, **kwargs):
