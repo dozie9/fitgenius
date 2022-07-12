@@ -332,7 +332,7 @@ def club_yesterday(club):
         'budget': club.get_days_budget(yesterday),
         'budget_progress': club.get_budget_progress(start_date=yesterday),
         'current_sales': club.get_current_sales(start_date=yesterday),
-        'gap': club.get_current_sales(start_date=yesterday) - club.get_budget_progress(start_date=yesterday),
+        'gap': Decimal(club.get_current_sales(start_date=yesterday)) - Decimal(club.get_budget_progress(start_date=yesterday)),
         'trend': club.get_trend(start_date=yesterday)
     }
 

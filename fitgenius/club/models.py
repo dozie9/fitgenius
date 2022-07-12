@@ -160,8 +160,8 @@ class Club(models.Model):
             end_date = start_date + datetime.timedelta(days=1)
 
         try:
-            trend = ((self.get_current_sales(start_date, end_date) * 100) / self.get_budget_progress(start_date,
-                                                                                                 end_date)) - 100
+            trend = ((decimal.Decimal(self.get_current_sales(start_date, end_date)) * 100) / decimal.Decimal(self.get_budget_progress(start_date,
+                                                                                                 end_date))) - 100
             return trend
         except (ZeroDivisionError, decimal.InvalidOperation):
             return 0
