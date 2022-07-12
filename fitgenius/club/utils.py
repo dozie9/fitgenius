@@ -1,6 +1,7 @@
 import calendar
 import datetime
 import itertools
+from decimal import Decimal
 from typing import Union, List
 
 import pandas as pd
@@ -281,7 +282,7 @@ def get_yesterday_progress(club):
         'budget': agent.get_days_budget(yesterday),
         'budget_progress': agent.get_budget_progress(start_date=yesterday),
         'current_sales': agent.get_current_sales(start_date=yesterday),
-        'gap': agent.get_current_sales(start_date=yesterday) - agent.get_budget_progress(start_date=yesterday),
+        'gap': Decimal(agent.get_current_sales(start_date=yesterday)) - Decimal(agent.get_budget_progress(start_date=yesterday)),
         'trend': agent.get_trend(start_date=yesterday)
     } for agent in agents]
 
