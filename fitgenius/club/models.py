@@ -15,7 +15,7 @@ User = get_user_model()
 
 class Club(models.Model):
     name = models.CharField(max_length=255)
-    manager = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clubs')
+    manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='clubs')
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

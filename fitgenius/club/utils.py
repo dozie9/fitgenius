@@ -5,6 +5,7 @@ from typing import Union, List
 
 import pandas as pd
 import numpy as np
+from django.contrib.auth import get_user_model
 
 from django.core.serializers import serialize
 from django.db.models import OuterRef, F, Sum, Subquery, Count, QuerySet, Avg, Q
@@ -16,6 +17,9 @@ from rest_framework.renderers import JSONRenderer
 from fitgenius.club.models import OfferedItem, Offer, Budget, Product, Action, WorkingHour, Club
 from fitgenius.club.serializers import OfferSerializer, BudgetSerializer
 from fitgenius.utils.query_debugger import query_debugger
+
+
+User = get_user_model()
 
 
 # @query_debugger
@@ -270,7 +274,7 @@ def generate_budget_table(qs: Union[QuerySet, List[Budget]], club: Club):
 
 def get_yesterday_progress(club):
     yesterday = timezone.now() - datetime.timedelta(days=1)
-    agents = club.user_set.all()
+    agents = club.user_set.all() or User.objects.none()
 
     return [{
         'agent': agent.get_full_name_or_username(),

@@ -30,7 +30,7 @@ class UserAdmin(auth_admin.UserAdmin):
         ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
-    list_display = ["username", "first_name", "last_name", "user_type", "is_superuser"]
+    list_display = ["username", "first_name", "last_name", "club", "user_type", "is_superuser"]
     search_fields = ["username", "first_name", "last_name"]
     readonly_fields = ['uuid']
 

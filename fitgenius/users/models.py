@@ -3,7 +3,7 @@ import uuid
 import decimal
 
 from django.contrib.auth.models import AbstractUser
-from django.db.models import (CharField, ForeignKey, ImageField, CASCADE, UUIDField, Sum, Count)
+from django.db.models import (CharField, ForeignKey, ImageField, CASCADE, SET_NULL, UUIDField, Sum, Count)
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -35,7 +35,7 @@ class User(AbstractUser):
     )
 
     user_type = CharField(_("Role"), choices=ROLES, default=AGENT, max_length=255, null=True)
-    club = ForeignKey('club.Club', on_delete=CASCADE, null=True)
+    club = ForeignKey('club.Club', on_delete=SET_NULL, null=True)
     uuid = UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     img = ImageField(_("Avatar"), upload_to=get_user_image_dir, null=True, blank=True)
