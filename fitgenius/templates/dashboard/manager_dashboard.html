@@ -58,9 +58,9 @@
           <div class="row">
             <div class="col-sm-4">
               <div class="avatar-md profile-user-wid mb-4">
-                <img src="{% static 'images/users/avatar-1.jpg' %}" alt="" class="img-thumbnail rounded-circle">
+                <img src="{{ user.get_img_url }}" alt="" class="img-thumbnail rounded-circle">
               </div>
-              <h5 class="font-size-15 text-truncate">{{ user.get_full_name }}</h5>
+              <h5 class="font-size-15 text-truncate">{{ user.get_full_name_or_ursername }}</h5>
               {#              <p class="text-muted mb-0 text-truncate">UI/UX Designer</p>#}
             </div>
 
@@ -69,16 +69,16 @@
 
                 <div class="row">
                   <div class="col-6">
-                    <h5 class="font-size-15">125</h5>
-                    <p class="text-muted mb-0">Projects</p>
+                    <h5 class="font-size-15">{{ user.club.name }}</h5>
+                    <p class="text-muted mb-0">Club</p>
                   </div>
                   <div class="col-6">
-                    <h5 class="font-size-15">€1245</h5>
-                    <p class="text-muted mb-0">Revenue</p>
+
                   </div>
                 </div>
                 <div class="mt-4">
-                  <a href="javascript: void(0);" class="btn btn-primary waves-effect waves-light btn-sm">View Profile <i
+                  <a href="javascript: void(0);" hx-target="#dialog" hx-get="{% url 'users:detail' %}"
+                     class="btn btn-primary waves-effect waves-light btn-sm">View Profile <i
                     class="mdi mdi-arrow-right ms-1"></i></a>
                 </div>
               </div>
@@ -115,8 +115,8 @@
             <div class="card-body">
               <div class="d-flex">
                 <div class="flex-grow-1">
-                  <p class="text-muted fw-medium">Orders</p>
-                  <h4 class="mb-0">1,235</h4>
+                  <p class="text-muted fw-medium">Offers</p>
+                  <h4 class="mb-0">{{ user.club.get_number_of_sales | default_if_none:0 | intcomma }}</h4>
                 </div>
 
                 <div class="flex-shrink-0 align-self-center">
@@ -135,8 +135,8 @@
             <div class="card-body">
               <div class="d-flex">
                 <div class="flex-grow-1">
-                  <p class="text-muted fw-medium">Revenue</p>
-                  <h4 class="mb-0">€35, 723</h4>
+                  <p class="text-muted fw-medium">Sales</p>
+                  <h4 class="mb-0">{{ user.club.get_sales | default_if_none:0 | floatformat:2 | intcomma }} €</h4>
                 </div>
 
                 <div class="flex-shrink-0 align-self-center ">
@@ -155,8 +155,8 @@
             <div class="card-body">
               <div class="d-flex">
                 <div class="flex-grow-1">
-                  <p class="text-muted fw-medium">Average Price</p>
-                  <h4 class="mb-0">€16.2</h4>
+                  <p class="text-muted fw-medium">Referrals</p>
+                  <h4 class="mb-0">{{ user.club.get_referrals | default_if_none:0 }}</h4>
                 </div>
 
                 <div class="flex-shrink-0 align-self-center">
@@ -342,10 +342,12 @@
       </div>
     </div>
   </div>
+  {% include 'partials/modal.html' %}
 {% endblock %}
 
 {% block extra_javascript %}
   <script src="{% static 'js/datepicker.min.js' %}"></script>
+  <script src="{% static 'js/htmx.min.js' %}"></script>
   <script>
     //let startDateDom = document.getElementById('start-date')
     //let endDateDom = document.getElementById('end-date')
@@ -369,4 +371,5 @@
     });
 
   </script>
+  <script src="{% static 'js/htmx-script.js' %}"></script>
 {% endblock %}
