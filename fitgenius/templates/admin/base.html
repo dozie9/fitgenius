@@ -1,0 +1,8 @@
+{% extends 'admin/base.html' %}
+{% load tz_detect %}
+
+{% block footer %}
+  {{ block.super }}
+
+{% tz_detect %}
+{% endblock %}

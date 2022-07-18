@@ -83,7 +83,8 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "guardian",
-    "rest_framework"
+    "rest_framework",
+    "tz_detect"
 ]
 
 LOCAL_APPS = [
@@ -148,6 +149,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "tz_detect.middleware.TimezoneMiddleware"
 ]
 
 # STATIC

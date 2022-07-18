@@ -8,6 +8,7 @@ from django.views.generic import TemplateView
 from fitgenius.core.views import HomeRedirectView
 
 urlpatterns = [
+    path('tz_detect/', include('tz_detect.urls')),
     path("", HomeRedirectView.as_view(), name="home"),
     path(
         "about/", TemplateView.as_view(template_name="pages/about.html"), name="about"
