@@ -61,10 +61,21 @@ def efficiency(agent):
     return (total_time_spent * 100) / agent.time_worked
 
 
-def product_totals(agent_uuid, date=None, client_type=None):
+def product_totals(agent_uuid, date=None, client_type=None, **kwargs):
+    start_date = kwargs.get('start_date')
+    end_date = kwargs.get('end_date')
+
     offered_items = OfferedItem.objects.agent_offered_items(agent_uuid)
     if date is not None:
         offered_items = offered_items.filter(offer__date__year=date.year, offer__date__month=date.month)
+
+    elif start_date:
+        if not end_date:
+            end_date = start_date + datetime.timedelta(days=1)
+        else:
+            end_date = end_date + datetime.timedelta(days=1)
+        offered_items = offered_items.filter(offer__date__range=[start_date, end_date])
+
     if client_type:
         offered_items = offered_items.filter(offer__client_type=client_type)
     products = Product.objects.all()
@@ -93,72 +104,72 @@ def product_sale_by_month(agent_uuid):
     return sales_by_month
 
 
-def generate_report(agents, report_type=None):
+def generate_report(agents, report_type=None, start_date=None, end_date=None):
     if not report_type == 'global':
         dataset = [
-            {'Global Salse': agent.get_sales(client_type=report_type),
-             'Memberships': agent.get_sales_for_product('Membership', client_type=report_type),
-             'Services': agent.get_sales_for_product('Services', client_type=report_type),
-             'Carnets': agent.get_sales_for_product('Carnets', client_type=report_type),
-             'Fees': agent.get_sales_for_product('Fees', client_type=report_type),
-             '%Sales on Global': agent.get_percent_sales_on_global(client_type=report_type),
-             'Prospects': agent.get_number_of_sales(client_type=report_type, category=Offer.PROSPECT),
-             'Prospects Finalized': agent.get_number_prospect_finalized_sales(),
-             'Prospects Non Finalized': agent.get_number_prospect_nonfinalized_sales(),
-             '% Prospects Finalized': agent.get_percentage_prospect_finalized(),
-             'Comebacks': agent.get_number_of_sales(client_type=report_type, category=Offer.COMEBACK),
-             '% Total Finalized': agent.get_percentage_total_finalized(),
-             '#Total Sales': agent.get_number_of_sales(product_name='all', client_type=report_type),
+            {'Global Salse': agent.get_sales(client_type=report_type, start_date=start_date, end_date=end_date),
+             'Memberships': agent.get_sales_for_product('Membership', client_type=report_type, start_date=start_date, end_date=end_date),
+             'Services': agent.get_sales_for_product('Services', client_type=report_type, start_date=start_date, end_date=end_date),
+             'Carnets': agent.get_sales_for_product('Carnets', client_type=report_type, start_date=start_date, end_date=end_date),
+             'Fees': agent.get_sales_for_product('Fees', client_type=report_type, start_date=start_date, end_date=end_date),
+             '%Sales on Global': agent.get_percent_sales_on_global(client_type=report_type, start_date=start_date, end_date=end_date),
+             'Prospects': agent.get_number_of_sales(client_type=report_type, category=Offer.PROSPECT, start_date=start_date, end_date=end_date),
+             'Prospects Finalized': agent.get_number_prospect_finalized_sales(start_date=start_date, end_date=end_date),
+             'Prospects Non Finalized': agent.get_number_prospect_nonfinalized_sales(start_date=start_date, end_date=end_date),
+             '% Prospects Finalized': agent.get_percentage_prospect_finalized(start_date=start_date, end_date=end_date),
+             'Comebacks': agent.get_number_of_sales(client_type=report_type, category=Offer.COMEBACK, start_date=start_date, end_date=end_date),
+             '% Total Finalized': agent.get_percentage_total_finalized(start_date=start_date, end_date=end_date),
+             '#Total Sales': agent.get_number_of_sales(product_name='all', client_type=report_type, start_date=start_date, end_date=end_date),
 
-             'No. Carnet Sales': agent.get_number_of_sales('Carnet', client_type=report_type),
-             'No. Membership Sales': agent.get_number_of_sales('Membership', client_type=report_type),
-             'No. Fees': agent.get_number_of_sales('Fee', client_type=report_type),
-             'No. Services': agent.get_number_of_sales('Service', client_type=report_type),
-             'Referrals': agent.get_referrals(client_type=report_type),
+             'No. Carnet Sales': agent.get_number_of_sales('Carnet', client_type=report_type, start_date=start_date, end_date=end_date),
+             'No. Membership Sales': agent.get_number_of_sales('Membership', client_type=report_type, start_date=start_date, end_date=end_date),
+             'No. Fees': agent.get_number_of_sales('Fee', client_type=report_type, start_date=start_date, end_date=end_date),
+             'No. Services': agent.get_number_of_sales('Service', client_type=report_type, start_date=start_date, end_date=end_date),
+             'Referrals': agent.get_referrals(client_type=report_type, start_date=start_date, end_date=end_date),
              # 'Extra Referrals': agent.get_no_extra_referrals(),
-             'Ref/Sale': agent.ref_sales_ratio(client_type=report_type),
+             'Ref/Sale': agent.ref_sales_ratio(client_type=report_type, start_date=start_date, end_date=end_date),
              # 'Total Ref/Sale': agent.total_ref_sales_ratio(),  # TODO: Get clarification
-             '>14 months': agent.get_sub_gt_14months(client_type=report_type),
-             'Yearly 12-14 months': agent.get_number_of_sub_for_range(12, 14, client_type=report_type),
-             'Seasonal 6-11 months': agent.get_number_of_sub_for_range(6, 11, client_type=report_type),
-             'Trim. 3-5 months': agent.get_number_of_sub_for_range(3, 5, client_type=report_type),
-             'Monthly 1-2 months': agent.get_number_of_sub_for_range(1, 2, client_type=report_type),
+             '>14 months': agent.get_sub_gt_14months(client_type=report_type, start_date=start_date, end_date=end_date),
+             'Yearly 12-14 months': agent.get_number_of_sub_for_range(12, 14, client_type=report_type, start_date=start_date, end_date=end_date),
+             'Seasonal 6-11 months': agent.get_number_of_sub_for_range(6, 11, client_type=report_type, start_date=start_date, end_date=end_date),
+             'Trim. 3-5 months': agent.get_number_of_sub_for_range(3, 5, client_type=report_type, start_date=start_date, end_date=end_date),
+             'Monthly 1-2 months': agent.get_number_of_sub_for_range(1, 2, client_type=report_type, start_date=start_date, end_date=end_date),
              'Other': 0,  # TODO: Get clarification
-             'Total Months': agent.get_all_total_sub_months(client_type=report_type),
-             'Average Month': agent.get_average_month(client_type=report_type),
-             'Average Membership Sale': agent.get_average_membership_sale(client_type=report_type),
-             'Outcome % Scheduled work': agent.get_percentage_scheduled_work(client_type=report_type),  # TODO: Get clarification
+             'Total Months': agent.get_all_total_sub_months(client_type=report_type, start_date=start_date, end_date=end_date),
+             'Average Month': agent.get_average_month(client_type=report_type, start_date=start_date, end_date=end_date),
+             'Average Membership Sale': agent.get_average_membership_sale(client_type=report_type, start_date=start_date, end_date=end_date),
+             'Outcome % Scheduled work': agent.get_percentage_scheduled_work(client_type=report_type, start_date=start_date, end_date=end_date),  # TODO: Get clarification
              'agent': agent.get_full_name_or_username()
              } for agent in agents]
     else:
         """global"""
         dataset = [
-            {'Global Salse': agent.get_sales(),
-             'Memberships': agent.get_sales_for_product('Membership'),
-             'Services': agent.get_sales_for_product('Services'),
-             'Carnets': agent.get_sales_for_product('Carnets'),
-             'Fees': agent.get_sales_for_product('Fees'),
-             'Time worked': agent.get_time_worked(),
-             'Efficiency': agent.get_efficiency(),
+            {'Global Salse': agent.get_sales(start_date=start_date, end_date=end_date),
+             'Memberships': agent.get_sales_for_product('Membership', start_date=start_date, end_date=end_date),
+             'Services': agent.get_sales_for_product('Services', start_date=start_date, end_date=end_date),
+             'Carnets': agent.get_sales_for_product('Carnets', start_date=start_date, end_date=end_date),
+             'Fees': agent.get_sales_for_product('Fees', start_date=start_date, end_date=end_date),
+             'Time worked': agent.get_time_worked(start_date=start_date, end_date=end_date),
+             'Efficiency': agent.get_efficiency(start_date=start_date, end_date=end_date),
              '#Total Sales': agent.get_number_of_sales(product_name='all'),
-             'No. Carnet Sales': agent.get_number_of_sales('Carnet'),
-             'No. Membership Sales': agent.get_number_of_sales('Membership'),
-             'No. Fees': agent.get_number_of_sales('Fee'),
-             'No. Services': agent.get_number_of_sales('Service'),
-             'Referrals': agent.get_referrals(),
-             'Extra Referrals': agent.get_no_extra_referrals(),
-             'Ref/Sale': agent.ref_sales_ratio(),
-             'Total Ref/Sale': agent.total_ref_sales_ratio(), # TODO: Get clarification
-             '>14 months': agent.get_sub_gt_14months(),
-             'Yearly 12-14 months': agent.get_number_of_sub_for_range(12, 14),
-             'Seasonal 6-11 months': agent.get_number_of_sub_for_range(6, 11),
-             'Trim. 3-5 months': agent.get_number_of_sub_for_range(3, 5),
-             'Monthly 1-2 months': agent.get_number_of_sub_for_range(1, 2),
+             'No. Carnet Sales': agent.get_number_of_sales('Carnet', start_date=start_date, end_date=end_date),
+             'No. Membership Sales': agent.get_number_of_sales('Membership', start_date=start_date, end_date=end_date),
+             'No. Fees': agent.get_number_of_sales('Fee', start_date=start_date, end_date=end_date),
+             'No. Services': agent.get_number_of_sales('Service', start_date=start_date, end_date=end_date),
+             'Referrals': agent.get_referrals(start_date=start_date, end_date=end_date),
+             'Extra Referrals': agent.get_no_extra_referrals(start_date=start_date, end_date=end_date),
+             'Ref/Sale': agent.ref_sales_ratio(start_date=start_date, end_date=end_date),
+             'Total Ref/Sale': agent.total_ref_sales_ratio(start_date=start_date, end_date=end_date), # TODO: Get clarification
+             '>14 months': agent.get_sub_gt_14months(start_date=start_date, end_date=end_date),
+             'Yearly 12-14 months': agent.get_number_of_sub_for_range(12, 14, start_date=start_date, end_date=end_date),
+             'Seasonal 6-11 months': agent.get_number_of_sub_for_range(6, 11, start_date=start_date, end_date=end_date),
+             'Trim. 3-5 months': agent.get_number_of_sub_for_range(3, 5, start_date=start_date, end_date=end_date),
+             'Monthly 1-2 months': agent.get_number_of_sub_for_range(1, 2, start_date=start_date, end_date=end_date),
              'Other': 0, # TODO: Get clarification
-             'Total Months': agent.get_all_total_sub_months(),
-             'Average Month': agent.get_average_month(),
-             'Average Membership Sale': agent.get_average_membership_sale(),
-             'Outcome % Scheduled work': agent.get_percentage_scheduled_work(), # TODO: Get clarification
+             'Total Months': agent.get_all_total_sub_months(start_date=start_date, end_date=end_date),
+             'Average Month': agent.get_average_month(start_date=start_date, end_date=end_date),
+             'Average Membership Sale': agent.get_average_membership_sale(start_date=start_date, end_date=end_date),
+             'Outcome % Scheduled work': agent.get_percentage_scheduled_work(start_date=start_date, end_date=end_date), # TODO: Get clarification
              'agent': agent.get_full_name_or_username()
              } for agent in agents]
     # print(dataset)

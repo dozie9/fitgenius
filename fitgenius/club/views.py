@@ -1,3 +1,5 @@
+import datetime
+
 from allauth.account.views import SignupView
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -513,12 +515,15 @@ class ReportView(LoginRequiredMixin, TemplateView):
         usernames = request.POST.getlist('username')
         file_type = request.POST.get('file_type')
         report_type = request.POST.get('report_type')
+        start_date = datetime.date.fromisoformat(request.POST.get('start')) if request.POST.get('start') else request.POST.get('start')
+        end_date = datetime.date.fromisoformat(request.POST.get('end')) if request.POST.get('start') else request.POST.get('end')
+
         club = request.user.club
         user_actions = request.POST.get('user_actions')
         club_users = User.objects.filter(club=club, username__in=usernames)
         # print(club_users)
         if club_users.exists():
-            df = generate_report(club_users, report_type=report_type)
+            df = generate_report(club_users, report_type=report_type, start_date=start_date, end_date=end_date)
             response = export_file(df, file_type)
             return response
 
@@ -527,6 +532,13 @@ class ReportView(LoginRequiredMixin, TemplateView):
                 actions = Action.objects.filter(club=club, agent__uuid=user_actions)
             else:
                 actions = Action.objects.filter(club=club)
+
+            if start_date:
+                if not end_date:
+                    end_date = start_date + datetime.timedelta(days=1)
+                else:
+                    end_date = end_date + datetime.timedelta(days=1)
+                actions.filter(date__range=[start_date, end_date])
             df = generate_actions_report(actions, user_actions)
             response = export_file(df, file_type)
             return response

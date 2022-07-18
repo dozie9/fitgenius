@@ -2,6 +2,9 @@
 {% load static %}
 
 {% block title %}Report{% endblock title %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/datepicker.min.css' %}"/>
+{% endblock %}
 
 {% block contents %}
   <div class="row">
@@ -12,7 +15,16 @@
 
 
             <form class="col-xl-6 mb-5" action="." method="post">
+
               <h4>Sales</h4>
+              <label>Date Range</label>
+
+              <div class="input-daterange input-group" id="datepicker6" data-date-format="dd M, yyyy"
+                   data-date-autoclose="true" data-provide="datepicker" data-date-container='#datepicker6'>
+                <input type="text" readonly class="form-control picker-start" id="sales-start-date" name="start" data-pt="sales" placeholder="Start Date: 'yyyy-mm-dd'"/>
+                <input type="text" readonly class="form-control picker-end" id="sales-end-date" name="end" data-pt="sales" placeholder="End Date: 'yyyy-mm-dd'"/>
+              </div>
+
               <div class="mb-3">
                 <label for="file_type" class="form-label">File Format</label>
                 <select id="file_type" name="file_type" class="form-select">
@@ -23,7 +35,7 @@
               {% csrf_token %}
 
               <h5 class="mt-4">Global or Client Type</h5>
-            {% comment %}
+              {% comment %}
               <div class="mb-3">
                 <div class="form-check">
                   <input type="radio" checked id="global" class="form-check-input" name="report_type" value="global">
@@ -86,8 +98,16 @@
 
             </form>
             <form class="col-xl-6" action="." method="post">
-            {% csrf_token %}
+              {% csrf_token %}
               <h4>Actions & Calls</h4>
+
+              <label>Date Range</label>
+
+              <div class="input-daterange input-group" id="datepicker7" data-date-format="dd M, yyyy"
+                   data-date-autoclose="true" data-provide="datepicker" data-date-container='#datepicker7'>
+                <input type="text" readonly class="form-control picker-start" id="action-start-date" name="start" data-pt="action" placeholder="Start Date: 'yyyy-mm-dd'"/>
+                <input type="text" readonly class="form-control picker-end" id="action-end-date" name="end" data-pt="action" placeholder="End Date: 'yyyy-mm-dd'"/>
+              </div>
 
               <div class="mb-3">
                 <label for="file_type2" class="form-label">File Format</label>
@@ -96,34 +116,37 @@
                   <option value="csv">CSV</option>
                 </select>
               </div>
-            <h5 class="mt-4">Select User</h5>
+              <h5 class="mt-4">Select User</h5>
 
 
 
-            {% if user.user_type == user.MANAGER %}
-              <div class="mb-3">
-                <div class="form-check">
-                  <input type="radio" class="form-check-input" id="act_" name="user_actions" value="global">
-                  <label for="act_" class="form-check-label">Global</label>
-                </div>
-              </div>
-
-              {% for agent in club_users %}
+              {% if user.user_type == user.MANAGER %}
                 <div class="mb-3">
                   <div class="form-check">
-                    <input type="radio" id="act_{{ agent.id }}" class="form-check-input" name="user_actions" value="{{ agent.uuid }}">
-                    <label class="form-check-label" for="act_{{ agent.id }}">{{ agent.get_full_name_or_username }}</label><br>
+                    <input type="radio" class="form-check-input" id="act_" name="user_actions" value="global">
+                    <label for="act_" class="form-check-label">Global</label>
                   </div>
                 </div>
-              {% endfor %}
-            {% else %}
+
+                {% for agent in club_users %}
+                  <div class="mb-3">
+                    <div class="form-check">
+                      <input type="radio" id="act_{{ agent.id }}" class="form-check-input" name="user_actions"
+                             value="{{ agent.uuid }}">
+                      <label class="form-check-label"
+                             for="act_{{ agent.id }}">{{ agent.get_full_name_or_username }}</label><br>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
                 <div class="mb-3">
                   <div class="form-check">
-                    <input type="radio" id="act_{{ user.id }}" class="form-check-input" name="user_actions" value="{{ user.uuid }}">
+                    <input type="radio" id="act_{{ user.id }}" class="form-check-input" name="user_actions"
+                           value="{{ user.uuid }}">
                     <label class="form-check-label" for="act_{{ user.id }}">{{ user.get_full_name_or_username }}</label><br>
                   </div>
                 </div>
-            {% endif %}
+              {% endif %}
               <div>
                 <button class="btn btn-primary w-md">Get report</button>
               </div>
@@ -149,5 +172,50 @@
         })
       }
     })
+  </script>
+  <script src="{% static 'js/datepicker.min.js' %}"></script>
+  <script>
+    //let startDateDom = document.getElementById('start-date')
+    //let endDateDom = document.getElementById('end-date')
+    $.fn.datepicker.setDefaults({
+      format: 'yyyy-mm-dd'
+    })
+
+
+    $(function () {
+      var $startDate = $('.picker-start');
+      var $endDate = $('.picker-end');
+
+      $startDate.each(function (item){
+          $(this).datepicker({
+            autoHide: true,
+            format: 'yyyy-mm-dd'
+          });
+      })
+      $endDate.each(function (item){
+        $(this).datepicker({
+          autoHide: true,
+          startDate: $(this).datepicker('getDate'),
+          format: 'yyyy-mm-dd'
+        });
+      })
+
+      $startDate.each(function (item){
+        let startPt = this
+
+        $(this).on('change', function () {
+          $endDate.each(function (i){
+            if (this.dataset.pt === startPt.dataset.pt) {
+              $(this).datepicker('setStartDate', $(startPt).datepicker('getDate'))
+            }
+          });
+        });
+      })
+      /*
+      $startDate.on('change', function () {
+        $endDate.datepicker('setStartDate', $startDate.datepicker('getDate'));
+      });*/
+    });
+
   </script>
 {% endblock %}

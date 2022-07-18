@@ -59,9 +59,18 @@ class User(AbstractUser):
             return self.img.url
         return '/static/images/users/avatar-1.jpg'
 
-    def get_time_worked(self):
+    def get_time_worked(self, **kwargs):
         # from fitgenius.club.models import WorkingHour
-        time_worked = self.workinghour_set.filter(
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+        workinghour_qs = self.workinghour_set
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+            workinghour_qs = workinghour_qs.filter(date__range=[start_date, end_date])
+        time_worked = workinghour_qs.filter(
             date__lte=timezone.now().date()
         ).aggregate(total_hours=Sum('hours'))['total_hours']
 
@@ -90,11 +99,20 @@ class User(AbstractUser):
         sales = offer_qs.aggregate(sales=Sum('total_sales'))
         return 0 if sales['sales'] is None else sales['sales']
 
-    def get_efficiency(self):
+    def get_efficiency(self, **kwargs):
         # from fitgenius.club.models import Action
         # actions = Action.objects.filter(agent=self)
-        total_time_spent = self.action_set.all().aggregate(total=Sum('time_spent'))['total']
-        time_worked = self.get_time_worked()
+        action_qs = self.action_set.all()
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+            action_qs = action_qs.filter(date__range=[start_date, end_date])
+        total_time_spent = action_qs.aggregate(total=Sum('time_spent'))['total']
+        time_worked = self.get_time_worked(start_date=start_date, end_date=end_date)
 
         if total_time_spent is None or time_worked == 0:
             return 0
@@ -107,22 +125,53 @@ class User(AbstractUser):
             return 0
         return self.get_time_worked() / no_calls
 
-    def get_referrals(self, client_type=None):
+    def get_referrals(self, client_type=None, **kwargs):
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+
+        offer_qs = self.offer_set.all()
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+            offer_qs = offer_qs.filter(date__range=[start_date, end_date])
+
         if client_type:
-            total_ref = self.offer_set.filter(client_type=client_type).aggregate(sum=Sum('referrals'))['sum']
+            total_ref = offer_qs.filter(client_type=client_type).aggregate(sum=Sum('referrals'))['sum']
             return 0 if total_ref is None else total_ref
-        total_ref = self.offer_set.all().aggregate(sum=Sum('referrals'))['sum']
+        total_ref = offer_qs.aggregate(sum=Sum('referrals'))['sum']
         return 0 if total_ref is None else total_ref
 
-    def get_no_extra_referrals(self):
+    def get_no_extra_referrals(self, **kwargs):
         from fitgenius.club.models import Action
-        return self.action_set.filter(action=Action.EXTRA_REFERRALS).count()
+
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+        action_qs = self.action_set.filter(action=Action.EXTRA_REFERRALS)
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+            action_qs = action_qs.filter(date__range=[start_date, end_date])
+
+        return action_qs.count()
 
     def get_ref_sales_ratio(self):
         pass
 
-    def get_sales(self, client_type=None, meeting_type=None, category_type=None):
+    def get_sales(self, client_type=None, meeting_type=None, category_type=None, **kwargs):
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+
         offer_qs = self.offer_set.agent_sales(agent_uuid=self.uuid)
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+            offer_qs = offer_qs.filter(date__range=[start_date, end_date])
         if client_type:
 
             offer_qs = offer_qs.filter(client_type=client_type)
@@ -136,20 +185,34 @@ class User(AbstractUser):
         sales = offer_qs.aggregate(sales=Sum('total_sales'))['sales']
         return 0 if sales is None else sales
 
-    def get_percent_sales_on_global(self, client_type):
+    def get_percent_sales_on_global(self, client_type, **kwargs):
         # from fitgenius.club.models import Offer
-        global_sales = self.get_sales()
-        client_type_sales = 0 if self.get_sales(client_type) is None else self.get_sales(client_type)
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+
+        global_sales = self.get_sales(start_date=start_date, end_date=end_date)
+        client_type_sales = 0 if self.get_sales(client_type, start_date=start_date, end_date=end_date) is None else self.get_sales(client_type, start_date=start_date, end_date=end_date)
 
         try:
             return (client_type_sales / global_sales) * 100
         except ZeroDivisionError:
             return 0
 
-    def get_number_of_sales(self, product_name='all', client_type=None, category=None):
+    def get_number_of_sales(self, product_name='all', client_type=None, category=None, **kwargs):
         from fitgenius.club.models import OfferedItem
 
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+
         offered_items = OfferedItem.objects.agent_offered_items(self.uuid)
+
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+            offered_items = offered_items.filter(offer__date__range=[start_date, end_date])
+
         if client_type:
             offered_items = offered_items.filter(offer__client_type=client_type)
         if category:
@@ -160,75 +223,147 @@ class User(AbstractUser):
         offered_items = offered_items.filter(product__title=product_name)
         return offered_items.count()
 
-    def get_number_prospect_sales(self):
+    def get_number_prospect_sales(self, **kwargs):
         from fitgenius.club.models import Offer
-        return self.get_number_of_sales(client_type=Offer.NEW_CLIENT, category=Offer.PROSPECT)
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
 
-    def get_number_comeback_sales(self):
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+
+        return self.get_number_of_sales(client_type=Offer.NEW_CLIENT, category=Offer.PROSPECT, start_date=start_date, end_date=end_date)
+
+    def get_number_comeback_sales(self, **kwargs):
         from fitgenius.club.models import Offer
-        return self.get_number_of_sales(client_type=Offer.NEW_CLIENT, category=Offer.COMEBACK)
 
-    def get_number_prospect_finalized_sales(self):
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+
+        return self.get_number_of_sales(client_type=Offer.NEW_CLIENT, category=Offer.COMEBACK, start_date=start_date, end_date=end_date)
+
+    def get_number_prospect_finalized_sales(self, **kwargs):
         from fitgenius.club.models import Offer, OfferedItem
+
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
 
         offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(
             offer__client_type=Offer.NEW_CLIENT, offer__category=Offer.PROSPECT, offer__accepted=True)
+
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+
+            offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(
+                offer__client_type=Offer.NEW_CLIENT, offer__category=Offer.PROSPECT, offer__accepted=True,
+                offer__date__range=[start_date, end_date]
+            )
+
         return offered_items.count()
 
-    def get_number_prospect_nonfinalized_sales(self):
+    def get_number_prospect_nonfinalized_sales(self, **kwargs):
         from fitgenius.club.models import Offer, OfferedItem
+
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
 
         offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(
             offer__client_type=Offer.NEW_CLIENT, offer__category=Offer.PROSPECT, offer__accepted=False)
+
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+
+            offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(
+                offer__client_type=Offer.NEW_CLIENT, offer__category=Offer.PROSPECT, offer__accepted=False,
+                offer__date__range=[start_date, end_date]
+            )
+
         return offered_items.count()
 
-    def get_percentage_prospect_finalized(self):
+    def get_percentage_prospect_finalized(self, **kwargs):
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+
         try:
-            return (self.get_number_prospect_finalized_sales() / self.get_number_prospect_sales()) * 100
+            return (self.get_number_prospect_finalized_sales(start_date=start_date, end_date=end_date) / self.get_number_prospect_sales(start_date=start_date, end_date=end_date)) * 100
         except ZeroDivisionError:
             return 0
 
-    def get_number_comeback_finalized_sales(self):
+    def get_number_comeback_finalized_sales(self, **kwargs):
         from fitgenius.club.models import Offer, OfferedItem
+
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
 
         offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(
             offer__client_type=Offer.NEW_CLIENT, offer__category=Offer.COMEBACK, offer__accepted=True)
+
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+            offered_items = OfferedItem.objects.agent_offered_items(self.uuid).filter(
+                offer__client_type=Offer.NEW_CLIENT, offer__category=Offer.COMEBACK, offer__accepted=True,
+                offer__date__range=[start_date, end_date]
+            )
+
         return offered_items.count()
 
-    def get_percentage_total_finalized(self):
+    def get_percentage_total_finalized(self, **kwargs):
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
         """filtered by new client"""
         try:
-            return (self.get_number_prospect_finalized_sales() + self.get_number_comeback_finalized_sales()) * 100 / (
-                self.get_number_prospect_sales() + self.get_number_comeback_sales())
+            return (self.get_number_prospect_finalized_sales(start_date=start_date, end_date=end_date) + self.get_number_comeback_finalized_sales(start_date=start_date, end_date=end_date)) * 100 / (
+                self.get_number_prospect_sales(start_date=start_date, end_date=end_date) + self.get_number_comeback_sales(start_date=start_date, end_date=end_date))
         except ZeroDivisionError:
             return 0
 
-    def ref_sales_ratio(self, client_type=None):
+    def ref_sales_ratio(self, client_type=None, **kwargs):
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
         # TODO: Get clarification
         try:
             if client_type:
                 return (
-                    (self.get_number_of_sales(product_name='Membership', client_type=client_type) +
-                     self.get_number_of_sales(product_name='Service', client_type=client_type) +
-                     self.get_number_of_sales(product_name='Carnet', client_type=client_type)
-                     ) / self.get_referrals(client_type=client_type)
+                    (self.get_number_of_sales(product_name='Membership', client_type=client_type, start_date=start_date, end_date=end_date) +
+                     self.get_number_of_sales(product_name='Service', client_type=client_type, start_date=start_date, end_date=end_date) +
+                     self.get_number_of_sales(product_name='Carnet', client_type=client_type, start_date=start_date, end_date=end_date)
+                     ) / self.get_referrals(client_type=client_type, start_date=start_date, end_date=end_date)
                 )
             return (
-                (self.get_number_of_sales(product_name='Membership') +
-                 self.get_number_of_sales(product_name='Service') +
-                 self.get_number_of_sales(product_name='Carnet')
-                 ) / self.get_referrals()
+                (self.get_number_of_sales(product_name='Membership', start_date=start_date, end_date=end_date) +
+                 self.get_number_of_sales(product_name='Service', start_date=start_date, end_date=end_date) +
+                 self.get_number_of_sales(product_name='Carnet', start_date=start_date, end_date=end_date)
+                 ) / self.get_referrals(start_date=start_date, end_date=end_date)
             )
         except (decimal.InvalidOperation, ZeroDivisionError):
             return 0
 
-    def total_ref_sales_ratio(self):
+    def total_ref_sales_ratio(self, **kwargs):
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
         try:
             return (
-                (self.get_number_of_sales(product_name='Membership') +
-                 self.get_number_of_sales(product_name='Service') +
-                 self.get_number_of_sales(product_name='Carnet')
-                 ) / self.get_referrals() + self.get_no_extra_referrals()
+                (self.get_number_of_sales(product_name='Membership', start_date=start_date, end_date=end_date) +
+                 self.get_number_of_sales(product_name='Service', start_date=start_date, end_date=end_date) +
+                 self.get_number_of_sales(product_name='Carnet', start_date=start_date, end_date=end_date)
+                 ) / self.get_referrals(start_date=start_date, end_date=end_date) + self.get_no_extra_referrals(start_date=start_date, end_date=end_date)
             )
         except ZeroDivisionError:
             return 0
@@ -259,10 +394,13 @@ class User(AbstractUser):
 
         return ((finalized_prospects + finalized_comebacks) * 100) / (prospects + comebacks)
 
-    def get_sales_for_product(self, product_title, client_type=None):
+    def get_sales_for_product(self, product_title, client_type=None, **kwargs):
         from fitgenius.club.utils import product_totals
 
-        product_sales = product_totals(self.uuid, client_type=client_type)
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+
+        product_sales = product_totals(self.uuid, client_type=client_type, start_date=start_date, end_date=end_date)
         # print(product_sales)
         try:
             membership_sales = next(x['total'] for x in product_sales if x['product'] == product_title)
@@ -270,30 +408,64 @@ class User(AbstractUser):
         except StopIteration:
             return 0
 
-    def get_sub_gt_14months(self, client_type=None):
+    def get_sub_gt_14months(self, client_type=None, **kwargs):
         from fitgenius.club.models import OfferedItem, Offer
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+
+        offered_item_qs = OfferedItem.objects.agent_offered_items(self.uuid).filter(number_of_months__gt=14)
+
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+
+            offered_item_qs = offered_item_qs.filter(offer__date__range=[start_date, end_date])
+
         if client_type:
-            return OfferedItem.objects.agent_offered_items(self.uuid).filter(
+            offered_item_qs = offered_item_qs.filter(
                 number_of_months__gt=14, offer__client_type=client_type).count()
-        return OfferedItem.objects.agent_offered_items(self.uuid).filter(number_of_months__gt=14).count()
+        return offered_item_qs.count()
 
-    def get_number_of_sub_for_range(self, min_months, max_months, client_type=None):
+    def get_number_of_sub_for_range(self, min_months, max_months, client_type=None, **kwargs):
         from fitgenius.club.models import OfferedItem, Offer
 
-        if client_type:
-            return OfferedItem.objects.agent_offered_items(self.uuid).filter(
-                number_of_months__range=(min_months, max_months), offer__client_type=client_type
-            ).count()
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
 
-        return OfferedItem.objects.agent_offered_items(self.uuid).filter(
+        offered_item_qs = OfferedItem.objects.agent_offered_items(self.uuid).filter(
             number_of_months__range=(min_months, max_months)
-        ).count()
+        )
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+            offered_item_qs = offered_item_qs.filter(offer__date__range=[start_date, end_date])
 
-    def get_all_total_sub_months(self, client_type=None):
+        if client_type:
+            offered_item_qs = offered_item_qs.filter(
+                number_of_months__range=(min_months, max_months), offer__client_type=client_type
+            )
+
+        return offered_item_qs.count()
+
+    def get_all_total_sub_months(self, client_type=None, **kwargs):
         """Total Months"""
         from fitgenius.club.models import OfferedItem, Offer
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+
+        offered_item_qs = OfferedItem.objects.agent_offered_items(self.uuid)
+        if start_date:
+            if not end_date:
+                end_date = start_date + datetime.timedelta(days=1)
+            else:
+                end_date = end_date + datetime.timedelta(days=1)
+            offered_item_qs = offered_item_qs.filter(offer__date__range=[start_date, end_date])
         if client_type:
-            total = OfferedItem.objects.agent_offered_items(self.uuid).filter(offer__client_type=client_type).aggregate(
+            total = offered_item_qs.filter(offer__client_type=client_type).aggregate(
                 sum=Sum('number_of_months'))['sum']
         else:
             total = OfferedItem.objects.agent_offered_items(self.uuid).aggregate(sum=Sum('number_of_months'))['sum']
@@ -301,33 +473,41 @@ class User(AbstractUser):
             return 0
         return total
 
-    def get_average_month(self, client_type=None):
+    def get_average_month(self, client_type=None, **kwargs):
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
         try:
             if client_type:
                 return self.get_sales_for_product('Membership',
-                                                  client_type=client_type) / self.get_all_total_sub_months(
-                    client_type=client_type)
-            return self.get_sales_for_product('Membership') / self.get_all_total_sub_months()
+                                                  client_type=client_type, start_date=start_date, end_date=end_date) / self.get_all_total_sub_months(
+                    client_type=client_type, start_date=start_date, end_date=end_date)
+            return self.get_sales_for_product('Membership', start_date=start_date, end_date=end_date) / self.get_all_total_sub_months(start_date=start_date, end_date=end_date)
         except ZeroDivisionError:
             return 0
 
-    def get_average_membership_sale(self, client_type=None):
+    def get_average_membership_sale(self, client_type=None, **kwargs):
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
         try:
             if client_type:
-                return self.get_sales_for_product('Membership', client_type=client_type) / self.get_number_of_sales(
-                    'Membership', client_type=client_type)
-            return self.get_sales_for_product('Membership') / self.get_number_of_sales('Membership')
+                return self.get_sales_for_product('Membership', client_type=client_type, start_date=start_date, end_date=end_date) / self.get_number_of_sales(
+                    'Membership', client_type=client_type, start_date=start_date, end_date=end_date)
+            return self.get_sales_for_product('Membership', start_date=start_date, end_date=end_date) / self.get_number_of_sales('Membership', start_date=start_date, end_date=end_date)
         except ZeroDivisionError:
             return 0
 
-    def get_percentage_scheduled_work(self, client_type=None):
+    def get_percentage_scheduled_work(self, client_type=None, **kwargs):
         from fitgenius.club.models import Offer
+
+        start_date = kwargs.get('start_date')
+        end_date = kwargs.get('end_date')
+
         try:
             if client_type:
-                scheduled_sale = self.get_sales(client_type=client_type, meeting_type=Offer.BOOKED)
-                return (scheduled_sale * 100) / self.get_sales(client_type=client_type)
-            scheduled_sale = self.get_sales(meeting_type=Offer.BOOKED)
-            return (scheduled_sale * 100) / self.get_sales()
+                scheduled_sale = self.get_sales(client_type=client_type, meeting_type=Offer.BOOKED, start_date=start_date, end_date=end_date)
+                return (scheduled_sale * 100) / self.get_sales(client_type=client_type, start_date=start_date, end_date=end_date)
+            scheduled_sale = self.get_sales(meeting_type=Offer.BOOKED, start_date=start_date, end_date=end_date)
+            return (scheduled_sale * 100) / self.get_sales(start_date=start_date, end_date=end_date)
         except ZeroDivisionError:
             return 0
 
