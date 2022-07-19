@@ -425,7 +425,7 @@ class User(AbstractUser):
 
         if client_type:
             offered_item_qs = offered_item_qs.filter(
-                number_of_months__gt=14, offer__client_type=client_type).count()
+                number_of_months__gt=14, offer__client_type=client_type)
         return offered_item_qs.count()
 
     def get_number_of_sub_for_range(self, min_months, max_months, client_type=None, **kwargs):

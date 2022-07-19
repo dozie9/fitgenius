@@ -1,7 +1,9 @@
 import calendar
 import datetime
 import itertools
+import mimetypes
 from decimal import Decimal
+from io import BytesIO
 from typing import Union, List
 
 import pandas as pd
@@ -104,10 +106,10 @@ def product_sale_by_month(agent_uuid):
     return sales_by_month
 
 
-def generate_report(agents, report_type=None, start_date=None, end_date=None):
+def generate_report(agents, report_type: str = None, start_date=None, end_date=None):
     if not report_type == 'global':
         dataset = [
-            {'Global Salse': agent.get_sales(client_type=report_type, start_date=start_date, end_date=end_date),
+            {f'{report_type.title()} Sales': agent.get_sales(client_type=report_type, start_date=start_date, end_date=end_date),
              'Memberships': agent.get_sales_for_product('Membership', client_type=report_type, start_date=start_date, end_date=end_date),
              'Services': agent.get_sales_for_product('Services', client_type=report_type, start_date=start_date, end_date=end_date),
              'Carnets': agent.get_sales_for_product('Carnets', client_type=report_type, start_date=start_date, end_date=end_date),
@@ -144,7 +146,7 @@ def generate_report(agents, report_type=None, start_date=None, end_date=None):
     else:
         """global"""
         dataset = [
-            {'Global Salse': agent.get_sales(start_date=start_date, end_date=end_date),
+            {'Global Sales': agent.get_sales(start_date=start_date, end_date=end_date),
              'Memberships': agent.get_sales_for_product('Membership', start_date=start_date, end_date=end_date),
              'Services': agent.get_sales_for_product('Services', start_date=start_date, end_date=end_date),
              'Carnets': agent.get_sales_for_product('Carnets', start_date=start_date, end_date=end_date),
@@ -177,16 +179,42 @@ def generate_report(agents, report_type=None, start_date=None, end_date=None):
     return df.append(df.sum().rename('Total'))
 
 
-def export_file(data_frame, file_type):
+def export_file(data_frame=None, dfs: list = [dict], file_type=None):
     if file_type == 'csv':
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="report.csv"'
         data_frame.to_csv(response)
         return response
     if file_type == 'excel':
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+        buffer = BytesIO()
+        start_row = 4
+        sheet_name = 'sheet'
+        with pd.ExcelWriter(buffer) as writer:
+            workbook = writer.book
+
+            for data_frame_dict in dfs:
+                data_frame = data_frame_dict['data_frame']
+                title = data_frame_dict['report_type'].title()
+                # start_row = 4 if not df_length else len(data_frame) + 4
+
+                data_frame.to_excel(writer, sheet_name=sheet_name, startrow=start_row, engine="xlsxwriter")
+                worksheet = writer.sheets[sheet_name]
+                # print(start_row, 'start_row', start_row, len(data_frame))
+
+                worksheet.write(
+                    start_row-2, 0, title,
+                    workbook.add_format({
+                        'bold': True,
+                        'size': 14
+                    })
+                )
+                worksheet.set_column(0, len(data_frame.columns)-1, 20)
+                start_row = len(data_frame) + start_row + 4
+
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment; filename="report.xlsx"'
-        data_frame.to_excel(response, engine="xlsxwriter")
         return response
 
 

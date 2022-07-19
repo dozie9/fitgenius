@@ -514,7 +514,7 @@ class ReportView(LoginRequiredMixin, TemplateView):
 
         usernames = request.POST.getlist('username')
         file_type = request.POST.get('file_type')
-        report_type = request.POST.get('report_type')
+        report_types = request.POST.getlist('report_type')
         start_date = datetime.date.fromisoformat(request.POST.get('start')) if request.POST.get('start') else request.POST.get('start')
         end_date = datetime.date.fromisoformat(request.POST.get('end')) if request.POST.get('start') else request.POST.get('end')
 
@@ -523,8 +523,14 @@ class ReportView(LoginRequiredMixin, TemplateView):
         club_users = User.objects.filter(club=club, username__in=usernames)
         # print(club_users)
         if club_users.exists():
-            df = generate_report(club_users, report_type=report_type, start_date=start_date, end_date=end_date)
-            response = export_file(df, file_type)
+            dfs = [
+                {
+                    'report_type': report_type,
+                    'data_frame': generate_report(club_users, report_type=report_type, start_date=start_date, end_date=end_date)
+                }
+                for report_type in report_types
+            ]
+            response = export_file(dfs=dfs, file_type=file_type)
             return response
 
         if user_actions:

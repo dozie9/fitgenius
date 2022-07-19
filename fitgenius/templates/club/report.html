@@ -50,7 +50,7 @@
                 </div>
 
               </div>
-            {% endcomment %}
+
               <div class="mb-3">
                 <label for="report_type" class="form-label">Client Type</label>
                 <select id="report_type" name="report_type" class="form-select">
@@ -60,6 +60,25 @@
                   {% endfor %}
                 </select>
               </div>
+              {% endcomment %}
+              <div class="mb-3">
+                <div class="form-check">
+                  <input class="client-type-checkbox form-check-input" id="client-global" type="checkbox"
+                         name="report_type"
+                         value="global">
+                  <label class="form-check-label" for="client-global">Global</label>
+                </div>
+              </div>
+              {% for client_type in ClubOffer.CLIENT_TYPES %}
+                  <div class="mb-3">
+                    <div class="form-check">
+                      <input class="client-type-checkbox form-check-input" id="client-{{ client_type }}" type="checkbox"
+                             name="report_type"
+                             value="{{ client_type.0 }}">
+                      <label class="form-check-label" for="client-{{ client_type }}">{{ client_type.1 }}</label>
+                    </div>
+                  </div>
+              {% endfor %}
 
               <h5 class="mt-4">Select User(s)</h5>
 
