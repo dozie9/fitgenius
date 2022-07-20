@@ -519,7 +519,7 @@ class ReportView(LoginRequiredMixin, TemplateView):
         end_date = datetime.date.fromisoformat(request.POST.get('end')) if request.POST.get('start') else request.POST.get('end')
 
         club = request.user.club
-        user_actions = request.POST.get('user_actions')
+        user_actions = request.POST.getlist('user_actions')
         club_users = User.objects.filter(club=club, username__in=usernames)
         # print(club_users)
         if club_users.exists():
@@ -530,23 +530,33 @@ class ReportView(LoginRequiredMixin, TemplateView):
                 }
                 for report_type in report_types
             ]
-            response = export_file(dfs=dfs, file_type=file_type)
+            response = export_file(dfs=dfs, file_type=file_type, r_type='sales')
             return response
 
         if user_actions:
-            if user_actions != 'global':
-                actions = Action.objects.filter(club=club, agent__uuid=user_actions)
-            else:
-                actions = Action.objects.filter(club=club)
+
+            actions = Action.objects.filter(club=club)
 
             if start_date:
                 if not end_date:
                     end_date = start_date + datetime.timedelta(days=1)
                 else:
                     end_date = end_date + datetime.timedelta(days=1)
-                actions.filter(date__range=[start_date, end_date])
-            df = generate_actions_report(actions, user_actions)
-            response = export_file(df, file_type)
+                actions = actions.filter(date__range=[start_date, end_date])
+
+            qs_list = [
+                (
+                    actions.filter(agent__uuid=ax), actions.first().agent.get_full_name_or_username()
+                ) if ax != 'global' else (actions, ax) for ax in user_actions
+            ]
+
+            dfs = [
+                {
+                    'data_frame': generate_actions_report(ax[0], ax[1], start_date=start_date, end_date=end_date),
+                    'title': f'{ax[1].title()}' if not start_date else f'{ax[1].title()} {start_date.strftime("%d/%m/%Y")} - {end_date.strftime("%d/%m/%Y")}'
+                } for ax in qs_list
+            ]
+            response = export_file(dfs=dfs, file_type=file_type, r_type='action')
             return response
 
         return redirect(request.path)

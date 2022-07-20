@@ -29,7 +29,7 @@
                 <label for="file_type" class="form-label">File Format</label>
                 <select id="file_type" name="file_type" class="form-select">
                   <option value="excel">Excel</option>
-                  <option value="csv">CSV</option>
+{#                  <option value="csv">CSV</option>#}
                 </select>
               </div>
               {% csrf_token %}
@@ -132,7 +132,7 @@
                 <label for="file_type2" class="form-label">File Format</label>
                 <select id="file_type2" name="file_type" class="form-select">
                   <option value="excel">Excel</option>
-                  <option value="csv">CSV</option>
+{#                  <option value="csv">CSV</option>#}
                 </select>
               </div>
               <h5 class="mt-4">Select User</h5>
@@ -142,18 +142,28 @@
               {% if user.user_type == user.MANAGER %}
                 <div class="mb-3">
                   <div class="form-check">
-                    <input type="radio" class="form-check-input" id="act_" name="user_actions" value="global">
+                    <input type="checkbox" class="form-check-input" id="act_" name="user_actions" value="global">
                     <label for="act_" class="form-check-label">Global</label>
                   </div>
                 </div>
 
                 {% for agent in club_users %}
+                  {% comment %}
                   <div class="mb-3">
                     <div class="form-check">
                       <input type="radio" id="act_{{ agent.id }}" class="form-check-input" name="user_actions"
                              value="{{ agent.uuid }}">
                       <label class="form-check-label"
                              for="act_{{ agent.id }}">{{ agent.get_full_name_or_username }}</label><br>
+                    </div>
+                  </div>
+                  {% endcomment %}
+                  <div class="mb-3">
+                    <div class="form-check">
+                      <input class="form-check-input" id="act_{{ agent.id }}" type="checkbox"
+                             name="user_actions"
+                             value="{{ agent.uuid }}">
+                      <label class="form-check-label" for="act_{{ agent.id }}">{{ agent.get_full_name_or_username }}</label>
                     </div>
                   </div>
                 {% endfor %}

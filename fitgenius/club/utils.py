@@ -179,7 +179,7 @@ def generate_report(agents, report_type: str = None, start_date=None, end_date=N
     return df.append(df.sum().rename('Total'))
 
 
-def export_file(data_frame=None, dfs: list = [dict], file_type=None):
+def export_file(data_frame=None, dfs: list = [], file_type=None, r_type=None):
     if file_type == 'csv':
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="report.csv"'
@@ -188,29 +188,54 @@ def export_file(data_frame=None, dfs: list = [dict], file_type=None):
     if file_type == 'excel':
 
         buffer = BytesIO()
-        start_row = 4
+
         sheet_name = 'sheet'
-        with pd.ExcelWriter(buffer) as writer:
-            workbook = writer.book
+        if r_type == 'sales':
+            start_row = 4
+            with pd.ExcelWriter(buffer) as writer:
+                workbook = writer.book
 
-            for data_frame_dict in dfs:
-                data_frame = data_frame_dict['data_frame']
-                title = data_frame_dict['report_type'].title()
-                # start_row = 4 if not df_length else len(data_frame) + 4
+                for data_frame_dict in dfs:
+                    data_frame = data_frame_dict['data_frame']
+                    title = data_frame_dict['report_type'].title()
+                    # start_row = 4 if not df_length else len(data_frame) + 4
 
-                data_frame.to_excel(writer, sheet_name=sheet_name, startrow=start_row, engine="xlsxwriter")
-                worksheet = writer.sheets[sheet_name]
-                # print(start_row, 'start_row', start_row, len(data_frame))
+                    data_frame.to_excel(writer, sheet_name=sheet_name, startrow=start_row, engine="xlsxwriter")
+                    worksheet = writer.sheets[sheet_name]
+                    # print(start_row, 'start_row', start_row, len(data_frame))
 
-                worksheet.write(
-                    start_row-2, 0, title,
-                    workbook.add_format({
-                        'bold': True,
-                        'size': 14
-                    })
-                )
-                worksheet.set_column(0, len(data_frame.columns)-1, 20)
-                start_row = len(data_frame) + start_row + 4
+                    worksheet.write(
+                        start_row-2, 0, title,
+                        workbook.add_format({
+                            'bold': True,
+                            'size': 14
+                        })
+                    )
+                    worksheet.set_column(0, len(data_frame.columns)-1, 20)
+                    start_row = len(data_frame) + start_row + 4
+        if r_type == 'action':
+            start_row = 4
+            with pd.ExcelWriter(buffer) as writer:
+                workbook = writer.book
+
+                for data_frame_dict in dfs:
+                    data_frame = data_frame_dict['data_frame']
+                    title = data_frame_dict['title'].title()
+                    # start_row = 4 if not df_length else len(data_frame) + 4
+
+                    data_frame.to_excel(writer, sheet_name=sheet_name, startrow=start_row, engine="xlsxwriter")
+                    worksheet = writer.sheets[sheet_name]
+                    # print(start_row, 'start_row', start_row, len(data_frame))
+
+                    worksheet.write(
+                        start_row - 2, 0, title,
+                        workbook.add_format({
+                            'bold': True,
+                            'size': 14
+                        })
+                    )
+                    worksheet.set_column(0, len(data_frame.columns) - 1, 20)
+                    start_row = len(data_frame) + start_row + 4
 
         buffer.seek(0)
         response = HttpResponse(buffer, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -218,9 +243,7 @@ def export_file(data_frame=None, dfs: list = [dict], file_type=None):
         return response
 
 
-def generate_actions_report(qs: Union[QuerySet, List[Action]], user_actions):
-    # df = pd.DataFrame.from_records(qs.values_list())
-    # df.columns = [col for col in qs[0].__dict__.keys()][1:]
+def generate_actions_report(qs: Union[QuerySet, List[Action]], user_actions, **kwargs):
 
     # create empty dataframe with category and actions as columns and index
     columns = [x[0] for x in Action.CATEGORY_CHOICES]
