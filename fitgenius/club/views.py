@@ -546,7 +546,7 @@ class ReportView(LoginRequiredMixin, TemplateView):
 
             qs_list = [
                 (
-                    actions.filter(agent__uuid=ax), actions.first().agent.get_full_name_or_username()
+                    actions.filter(agent__uuid=ax), User.objects.get(uuid=ax).get_full_name_or_username()
                 ) if ax != 'global' else (actions, ax) for ax in user_actions
             ]
 
